@@ -1,3 +1,4 @@
+mod geometry;
 mod graphics;
 
 use std::fs::File;
