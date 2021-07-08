@@ -1,3 +1,5 @@
+use std::ops::Mul;
+
 use num_traits::float::Float;
 
 #[derive(Debug, PartialEq, Copy, Clone)]
@@ -29,6 +31,14 @@ impl<T: Float> Vector3<T> {
     }
 }
 
+impl<T: Float> Mul<T> for Vector3<T> {
+    type Output = Self;
+
+    fn mul(self, scalar: T) -> Self {
+        Self { x: self.x * scalar, y: self.y * scalar, z: self.z * scalar }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -54,5 +64,13 @@ mod tests {
         let v = Vector3 { x: 2.0, y: -10.0, z: 11.0 };
 
         assert_eq!(v.length_squared(), 225.0);
+    }
+
+    #[test]
+    fn test_multiply_scalar() {
+        assert_eq!(
+            Vector3::new(1.0, 2.0, 3.0) * 2.0,
+            Vector3::new(2.0, 4.0, 6.0),
+        )
     }
 }
