@@ -112,8 +112,8 @@ mod tests {
 
     #[test]
     fn dot_vector3() {
-        let v = Vector3f { x: -1.0, y: -2.0, z: -3.0 };
-        let w = Vector3f { x: 3.0, y: 4.0, z: 5.0 };
+        let v = Vector3 { x: -1.0, y: -2.0, z: -3.0 };
+        let w = Vector3 { x: 3.0, y: 4.0, z: 5.0 };
 
         assert_eq!(v.dot(&w), -26.0);
     }

@@ -81,8 +81,15 @@ fn ray_colour<T: Float + FromPrimitive>(ray: &Ray<T>) -> Colour<T> {
         T::from_f32(0.0).unwrap(),
         T::from_f32(-1.0).unwrap(),
     );
-    if hit_sphere(&sphere_centre, T::from_f32(0.5).unwrap(), ray) {
-        return red;
+    if let Some(t) = hit_sphere(&sphere_centre, T::from_f32(0.5).unwrap(), ray) {
+        if t > T::zero() {
+            let normal = (ray.at(t) - sphere_centre).normalise();
+            return Colour::new(
+                normal.x + T::from_f32(1.0).unwrap(),
+                normal.y + T::from_f32(1.0).unwrap(),
+                normal.z + T::from_f32(1.0).unwrap(),
+            ) * T::from_f32(0.5).unwrap();
+        }
     }
     
     let unit = ray.direction.normalise();
@@ -99,7 +106,7 @@ fn ray_colour<T: Float + FromPrimitive>(ray: &Ray<T>) -> Colour<T> {
 ///     (t^2)(b . b) + 2t(b . (A - C)) + ((A - C) . A - C) - r^2 = 0,
 /// a quadratic in t. We can then look at the discriminant ot see whether there are
 /// any solutions.
-fn hit_sphere<T: Float + FromPrimitive>(centre: &Point3<T>, radius: T, ray: &Ray<T>) -> bool {
+fn hit_sphere<T: Float + FromPrimitive>(centre: &Point3<T>, radius: T, ray: &Ray<T>) -> Option<T> {
     let oc = ray.origin - centre.clone();
     let a = ray.direction.dot(&ray.direction);
     let b = oc.dot(&ray.direction) * T::from_f32(2.0).unwrap();
@@ -107,7 +114,13 @@ fn hit_sphere<T: Float + FromPrimitive>(centre: &Point3<T>, radius: T, ray: &Ray
 
     let discriminant = (b * b) - (T::from_f32(4.0).unwrap() * a * c);
 
-    discriminant > T::zero()
+    if discriminant > T::zero() {
+        let numerator = (b * T::from_f32(-1.0).unwrap()) - discriminant.sqrt();
+        let denominator = a * T::from_f32(2.0).unwrap();
+        Some(numerator / denominator)
+    } else {
+        None
+    }
 }
 
 fn write_colour<T: Float + FromPrimitive>(file: &mut File, colour: &Colour<T>) {
