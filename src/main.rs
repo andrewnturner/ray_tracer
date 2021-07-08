@@ -108,16 +108,15 @@ fn ray_colour<T: Float + FromPrimitive>(ray: &Ray<T>) -> Colour<T> {
 /// any solutions.
 fn hit_sphere<T: Float + FromPrimitive>(centre: &Point3<T>, radius: T, ray: &Ray<T>) -> Option<T> {
     let oc = ray.origin - centre.clone();
-    let a = ray.direction.dot(&ray.direction);
-    let b = oc.dot(&ray.direction) * T::from_f32(2.0).unwrap();
-    let c = oc.dot(&oc) - (radius * radius);
+    let a = ray.direction.length_squared();
+    let half_b = oc.dot(&ray.direction);
+    let c = oc.length_squared() - (radius * radius);
 
-    let discriminant = (b * b) - (T::from_f32(4.0).unwrap() * a * c);
+    let discriminant = (half_b * half_b) - (a * c);
 
     if discriminant > T::zero() {
-        let numerator = (b * T::from_f32(-1.0).unwrap()) - discriminant.sqrt();
-        let denominator = a * T::from_f32(2.0).unwrap();
-        Some(numerator / denominator)
+        let t = ((half_b * T::from_f32(-1.0).unwrap()) - discriminant.sqrt()) / a;
+        Some(t)
     } else {
         None
     }
