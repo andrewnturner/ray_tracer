@@ -1,4 +1,4 @@
-use std::ops::Mul;
+use std::ops::{Mul, Div};
 
 use num_traits::float::Float;
 
@@ -29,6 +29,20 @@ impl<T: Float> Vector3<T> {
     pub fn length_squared(&self) -> T {
         (self.x * self.x) + (self.y * self.y) + (self.z * self.z)
     }
+
+    pub fn length(&self) -> T {
+        self.length_squared().sqrt()
+    }
+
+    pub fn normalise(&self) -> Self {
+        let length = self.length();
+
+        Vector3 {
+            x: self.x / length,
+            y: self.y / length,
+            z: self.z / length,
+        }
+    }
 }
 
 impl<T: Float> Mul<T> for Vector3<T> {
@@ -36,6 +50,17 @@ impl<T: Float> Mul<T> for Vector3<T> {
 
     fn mul(self, scalar: T) -> Self {
         Self { x: self.x * scalar, y: self.y * scalar, z: self.z * scalar }
+    }
+}
+
+impl<T: Float> Div<T> for Vector3<T> {
+    type Output = Self;
+
+    fn div(self, scalar: T) -> Self {
+        debug_assert!(scalar != T::zero());
+        let inv = scalar.recip();
+
+        Self { x: self.x * inv, y: self.y * inv, z: self.z * inv }
     }
 }
 
@@ -67,10 +92,33 @@ mod tests {
     }
 
     #[test]
+    fn length_vector3() {
+        let v = Vector3 { x: 1.0, y: 2.0, z: -2.0 };
+
+        assert_eq!(v.length(), 3.0);
+    }
+
+    #[test]
+    fn normalise_vector3() {
+        let v = Vector3 { x: 1.0, y: 1.0, z: 1.0 };
+
+        let n = 1.0 / (3.0).sqrt();
+        assert_eq!(v.normalise(), Vector3 { x: n, y: n, z: n });
+    }
+
+    #[test]
     fn test_multiply_scalar() {
         assert_eq!(
             Vector3::new(1.0, 2.0, 3.0) * 2.0,
             Vector3::new(2.0, 4.0, 6.0),
+        )
+    }
+
+    #[test]
+    fn test_divide_scalar() {
+        assert_eq!(
+            Vector3::new(1.0, 2.0, 3.0) / 2.0,
+            Vector3::new(0.5, 1.0, 1.5),
         )
     }
 }

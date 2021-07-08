@@ -1,5 +1,6 @@
 mod geometry;
 mod graphics;
+mod util;
 
 use std::fs::File;
 use std::io::Write;
@@ -8,11 +9,25 @@ use std::path::Path;
 use num_traits::float::Float;
 use num_traits::cast::FromPrimitive;
 
+use geometry::point::Point3;
+use geometry::ray::Ray;
+use geometry::vector::Vector3;
 use graphics::colour::Colour;
 
 fn main() {
-    let image_width = 256;
-    let image_height = 256;
+    let aspect_ratio = 16.0 / 9.0;
+    let image_width = 400;
+    let image_height = (image_width as f32 / aspect_ratio) as isize;
+
+    let viewport_height = 2.0;
+    let viewport_width = aspect_ratio * viewport_height;
+    let focal_length = 1.0;
+
+    let origin = Point3::zero();
+    let horizontal = Vector3::new(viewport_width, 0.0, 0.0);
+    let vertical = Vector3::new(0.0, viewport_height, 0.0);
+    let depth = Vector3::new(0.0, 0.0, focal_length);
+    let lower_left_corner = origin - (horizontal / 2.0) - (vertical / 2.0) - depth;
 
     let path = Path::new("render.ppm");
     let display = path.display();
@@ -30,15 +45,36 @@ fn main() {
         println!("Line {} of {}", j + 1, image_height);
 
         for i in 0..image_width {
-            let c = Colour::new(
-                (i as f32) / ((image_width - 1) as f32),
-                (j as f32) / ((image_height - 1) as f32),
-                0.25,
+            let u = (i as f32) / ((image_width - 1) as f32);
+            let v = (j as f32) / ((image_height - 1) as f32);
+
+            let r = Ray::new(
+                origin,
+                (lower_left_corner + (horizontal * u) + (vertical * v)).as_vector3(),
             );
 
-            write_colour(&mut file, &c);
+            let pixel_colour = ray_colour(&r);
+            write_colour(&mut file, &pixel_colour);
         }
     }
+}
+
+fn ray_colour<T: Float + FromPrimitive>(ray: &Ray<T>) -> Colour<T> {
+    let unit = ray.direction.normalise();
+    let t: T = T::from_f32(0.5).unwrap() * (unit.y + T::from_f32(1.0).unwrap());
+
+    let white = Colour::new(
+        T::from_f32(1.0).unwrap(),
+        T::from_f32(1.0).unwrap(),
+        T::from_f32(1.0).unwrap(),
+    );
+    let blue = Colour::new(
+        T::from_f32(0.5).unwrap(),
+        T::from_f32(0.7).unwrap(),
+        T::from_f32(1.0).unwrap(),
+    );
+
+    (white * (T::from_f32(1.0).unwrap() - t)) + (blue * t)
 }
 
 fn write_colour<T: Float + FromPrimitive>(file: &mut File, colour: &Colour<T>) {

@@ -1,4 +1,4 @@
-use std::ops::Add;
+use std::ops::{Add, Sub};
 
 use num_traits::float::Float;
 
@@ -27,6 +27,14 @@ impl<T: Float> Point3<T> {
             z: T::zero(),
         }
     }
+
+    pub fn as_vector3(self) -> Vector3<T> {
+        Vector3 {
+            x: self.x,
+            y: self.y,
+            z: self.z,
+        }
+    }
 }
 
 impl <T: Float> Add<Vector3<T>> for Point3<T> {
@@ -34,6 +42,14 @@ impl <T: Float> Add<Vector3<T>> for Point3<T> {
 
     fn add(self, v: Vector3<T>) -> Self {
         Self { x: self.x + v.x, y: self.y + v.y, z: self.z + v.z }
+    }
+}
+
+impl <T: Float> Sub<Vector3<T>> for Point3<T> {
+    type Output = Self;
+
+    fn sub(self, v: Vector3<T>) -> Self {
+        Self { x: self.x - v.x, y: self.y - v.y, z: self.z - v.z }
     }
 }
 
@@ -58,10 +74,26 @@ mod tests {
     }
 
     #[test]
+    fn point3_as_vector3() {
+        assert_eq!(
+            Point3::new(1.0, 2.0, 3.0).as_vector3(),
+            Vector3::new(1.0, 2.0, 3.0),
+        )
+    }
+
+    #[test]
     fn add_vector3() {
         assert_eq!(
             Point3::new(1.0, 2.0, 3.0) + Vector3::new(2.0, 3.0, 4.0),
             Point3::new(3.0, 5.0, 7.0),
+        );
+    }
+
+    #[test]
+    fn subtract_vector3() {
+        assert_eq!(
+            Point3::new(3.0, 5.0, 7.0) - Vector3::new(1.0, 2.0, 3.0),
+            Point3::new(2.0, 3.0, 4.0),
         );
     }
 }
