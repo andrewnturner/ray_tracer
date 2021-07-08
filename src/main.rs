@@ -60,9 +60,6 @@ fn main() {
 }
 
 fn ray_colour<T: Float + FromPrimitive>(ray: &Ray<T>) -> Colour<T> {
-    let unit = ray.direction.normalise();
-    let t: T = T::from_f32(0.5).unwrap() * (unit.y + T::from_f32(1.0).unwrap());
-
     let white = Colour::new(
         T::from_f32(1.0).unwrap(),
         T::from_f32(1.0).unwrap(),
@@ -73,8 +70,44 @@ fn ray_colour<T: Float + FromPrimitive>(ray: &Ray<T>) -> Colour<T> {
         T::from_f32(0.7).unwrap(),
         T::from_f32(1.0).unwrap(),
     );
+    let red = Colour::new(
+        T::from_f32(1.0).unwrap(),
+        T::from_f32(0.0).unwrap(),
+        T::from_f32(0.0).unwrap(),
+    );
+    
+    let sphere_centre = Point3::new(
+        T::from_f32(0.0).unwrap(),
+        T::from_f32(0.0).unwrap(),
+        T::from_f32(-1.0).unwrap(),
+    );
+    if hit_sphere(&sphere_centre, T::from_f32(0.5).unwrap(), ray) {
+        return red;
+    }
+    
+    let unit = ray.direction.normalise();
+    let t: T = T::from_f32(0.5).unwrap() * (unit.y + T::from_f32(1.0).unwrap());
 
     (white * (T::from_f32(1.0).unwrap() - t)) + (blue * t)
+}
+
+
+/// We have a ray R(t) = A + tb and sphere of radius r centred at C. We have an intersection
+/// if there is t such that
+///     (R(t) - C) . (R(t) - C) = r^2.
+/// Expanding gives
+///     (t^2)(b . b) + 2t(b . (A - C)) + ((A - C) . A - C) - r^2 = 0,
+/// a quadratic in t. We can then look at the discriminant ot see whether there are
+/// any solutions.
+fn hit_sphere<T: Float + FromPrimitive>(centre: &Point3<T>, radius: T, ray: &Ray<T>) -> bool {
+    let oc = ray.origin - centre.clone();
+    let a = ray.direction.dot(&ray.direction);
+    let b = oc.dot(&ray.direction) * T::from_f32(2.0).unwrap();
+    let c = oc.dot(&oc) - (radius * radius);
+
+    let discriminant = (b * b) - (T::from_f32(4.0).unwrap() * a * c);
+
+    discriminant > T::zero()
 }
 
 fn write_colour<T: Float + FromPrimitive>(file: &mut File, colour: &Colour<T>) {

@@ -43,6 +43,10 @@ impl<T: Float> Vector3<T> {
             z: self.z / length,
         }
     }
+
+    pub fn dot(&self, other: &Self) -> T {
+        (self.x * other.x) + (self.y * other.y) + (self.z * other.z)
+    }
 }
 
 impl<T: Float> Mul<T> for Vector3<T> {
@@ -104,6 +108,14 @@ mod tests {
 
         let n = 1.0 / (3.0).sqrt();
         assert_eq!(v.normalise(), Vector3 { x: n, y: n, z: n });
+    }
+
+    #[test]
+    fn dot_vector3() {
+        let v = Vector3f { x: -1.0, y: -2.0, z: -3.0 };
+        let w = Vector3f { x: 3.0, y: 4.0, z: 5.0 };
+
+        assert_eq!(v.dot(&w), -26.0);
     }
 
     #[test]

@@ -37,6 +37,14 @@ impl<T: Float> Point3<T> {
     }
 }
 
+impl <T: Float> Sub for Point3<T> {
+    type Output = Vector3<T>;
+
+    fn sub(self, other: Self) -> Vector3<T> {
+        Vector3 { x: self.x - other.x, y: self.y - other.y, z: self.z - other.z }
+    }
+}
+
 impl <T: Float> Add<Vector3<T>> for Point3<T> {
     type Output = Self;
 
@@ -79,6 +87,14 @@ mod tests {
             Point3::new(1.0, 2.0, 3.0).as_vector3(),
             Vector3::new(1.0, 2.0, 3.0),
         )
+    }
+
+    #[test]
+    fn subtract_point() {
+        let p = Point3 { x: 1.0, y: 2.0, z: 3.0 };
+        let q = Point3 { x: 2.0, y: 1.0, z: -1.0 };
+
+        assert_eq!(p - q, Vector3 { x: -1.0, y: 1.0, z: 4.0 });
     }
 
     #[test]
