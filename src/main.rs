@@ -1,17 +1,20 @@
 mod geometry;
 mod graphics;
+mod render;
 mod util;
 
 use std::fs::File;
 use std::io::Write;
 use std::path::Path;
 
-use num_traits::float::Float;
 use num_traits::cast::FromPrimitive;
+use num_traits::float::Float;
 
 use geometry::point::Point3;
 use geometry::ray::Ray;
 use geometry::vector::Vector3;
+use render::element::Element;
+use render::elements::sphere::Sphere;
 use graphics::colour::Colour;
 
 fn main() {
@@ -76,50 +79,27 @@ fn ray_colour<T: Float + FromPrimitive>(ray: &Ray<T>) -> Colour<T> {
         T::from_f32(0.0).unwrap(),
     );
     
-    let sphere_centre = Point3::new(
-        T::from_f32(0.0).unwrap(),
-        T::from_f32(0.0).unwrap(),
-        T::from_f32(-1.0).unwrap(),
+    let sphere = Sphere::new(
+        Point3::new(
+            T::from_f32(0.0).unwrap(),
+            T::from_f32(0.0).unwrap(),
+            T::from_f32(-1.0).unwrap(),
+        ),
+        T::from_f32(0.5).unwrap(),
     );
-    if let Some(t) = hit_sphere(&sphere_centre, T::from_f32(0.5).unwrap(), ray) {
-        if t > T::zero() {
-            let normal = (ray.at(t) - sphere_centre).normalise();
-            return Colour::new(
-                normal.x + T::from_f32(1.0).unwrap(),
-                normal.y + T::from_f32(1.0).unwrap(),
-                normal.z + T::from_f32(1.0).unwrap(),
-            ) * T::from_f32(0.5).unwrap();
-        }
+    if let Some(hit_record) = sphere.hit(&ray, T::zero(), T::infinity()) {
+        let normal = hit_record.normal.normalise();
+        return Colour::new(
+            normal.x + T::from_f32(1.0).unwrap(),
+            normal.y + T::from_f32(1.0).unwrap(),
+            normal.z + T::from_f32(1.0).unwrap(),
+        ) * T::from_f32(0.5).unwrap();
     }
     
     let unit = ray.direction.normalise();
     let t: T = T::from_f32(0.5).unwrap() * (unit.y + T::from_f32(1.0).unwrap());
 
     (white * (T::from_f32(1.0).unwrap() - t)) + (blue * t)
-}
-
-
-/// We have a ray R(t) = A + tb and sphere of radius r centred at C. We have an intersection
-/// if there is t such that
-///     (R(t) - C) . (R(t) - C) = r^2.
-/// Expanding gives
-///     (t^2)(b . b) + 2t(b . (A - C)) + ((A - C) . A - C) - r^2 = 0,
-/// a quadratic in t. We can then look at the discriminant ot see whether there are
-/// any solutions.
-fn hit_sphere<T: Float + FromPrimitive>(centre: &Point3<T>, radius: T, ray: &Ray<T>) -> Option<T> {
-    let oc = ray.origin - centre.clone();
-    let a = ray.direction.length_squared();
-    let half_b = oc.dot(&ray.direction);
-    let c = oc.length_squared() - (radius * radius);
-
-    let discriminant = (half_b * half_b) - (a * c);
-
-    if discriminant > T::zero() {
-        let t = ((half_b * T::from_f32(-1.0).unwrap()) - discriminant.sqrt()) / a;
-        Some(t)
-    } else {
-        None
-    }
 }
 
 fn write_colour<T: Float + FromPrimitive>(file: &mut File, colour: &Colour<T>) {
