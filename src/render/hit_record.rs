@@ -1,6 +1,3 @@
-use num_traits::cast::FromPrimitive;
-use num_traits::float::Float;
-
 use crate::geometry::point::Point3;
 use crate::geometry::ray::Ray;
 use crate::geometry::vector::Vector3;
@@ -8,15 +5,15 @@ use crate::geometry::vector::Vector3;
 #[derive(Debug, PartialEq, Copy, Clone)]
 // The normal always points against the incident ray.
 // The front_face flag tells us whether we hit the outside or inside.
-pub struct HitRecord<T: Float> {
-    pub point: Point3<T>,
-    pub normal: Vector3<T>,
-    pub t: T,
+pub struct HitRecord {
+    pub point: Point3,
+    pub normal: Vector3,
+    pub t: f32,
     pub front_face: bool,
 }
 
-impl<T: Float + FromPrimitive> HitRecord<T> {
-    pub fn new(point: Point3<T>, normal: Vector3<T>, t: T, front_face: bool) -> Self {
+impl HitRecord {
+    pub fn new(point: Point3, normal: Vector3, t: f32, front_face: bool) -> Self {
         HitRecord {
             point: point,
             normal: normal,
@@ -25,9 +22,9 @@ impl<T: Float + FromPrimitive> HitRecord<T> {
         }
     }
 
-    pub fn new_from_incident_ray(point: Point3<T>, outward_normal: Vector3<T>, t: T, ray: &Ray<T>) -> Self {
-        let front_face = ray.direction.dot(&outward_normal) < T::zero();
-        let normal = if front_face { outward_normal } else {outward_normal * T::from_f32(-1.0).unwrap() };
+    pub fn new_from_incident_ray(point: Point3, outward_normal: Vector3, t: f32, ray: &Ray) -> Self {
+        let front_face = ray.direction.dot(&outward_normal) < 0.0;
+        let normal = if front_face { outward_normal } else { outward_normal * -1.0 };
 
         HitRecord {
             point: point,

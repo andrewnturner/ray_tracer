@@ -1,5 +1,4 @@
-use num_traits::cast::FromPrimitive;
-use num_traits::float::Float;
+use std::fmt::Debug;
 
 use crate::geometry::point::Point3;
 use crate::geometry::ray::Ray;
@@ -8,13 +7,13 @@ use super::super::element::Element;
 use super::super::hit_record::HitRecord;
 
 #[derive(Debug, PartialEq, Copy, Clone)]
-pub struct Sphere<T: Float> {
-    pub centre: Point3<T>,
-    pub radius: T,
+pub struct Sphere {
+    pub centre: Point3,
+    pub radius: f32,
 }
 
-impl<T: Float> Sphere<T> {
-    pub fn new(centre: Point3<T>, radius: T) -> Self {
+impl Sphere {
+    pub fn new(centre: Point3, radius: f32) -> Self {
         Sphere {
             centre: centre,
             radius: radius,
@@ -22,7 +21,7 @@ impl<T: Float> Sphere<T> {
     }
 }
 
-impl<T: Float + FromPrimitive> Element<T> for Sphere<T> {
+impl Element for Sphere {
 
     /// We have a ray R(t) = A + tb and sphere of radius r centred at C. We have an intersection
     /// if there is t such that
@@ -31,7 +30,7 @@ impl<T: Float + FromPrimitive> Element<T> for Sphere<T> {
     ///     (t^2)(b . b) + 2t(b . (A - C)) + ((A - C) . A - C) - r^2 = 0,
     /// a quadratic in t. We can then look at the discriminant ot see whether there are
     /// any solutions.
-    fn hit(&self, ray: &Ray<T>, t_min: T, t_max: T) -> Option<HitRecord<T>> {
+    fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord> {
         let oc = ray.origin - self.centre.clone();
         let a = ray.direction.length_squared();
         let half_b = oc.dot(&ray.direction);
@@ -39,14 +38,14 @@ impl<T: Float + FromPrimitive> Element<T> for Sphere<T> {
 
         let discriminant = (half_b * half_b) - (a * c);
 
-        if discriminant < T::zero() {
+        if discriminant < 0.0 {
             return None
         }
 
         let sqrt_discriminant = discriminant.sqrt();
-        let mut root = ((half_b * T::from_f32(-1.0).unwrap()) - sqrt_discriminant) / a;
+        let mut root = ((half_b * -1.0) - sqrt_discriminant) / a;
         if root < t_min || root > t_max {
-            root = ((half_b * T::from_f32(-1.0).unwrap()) + sqrt_discriminant) / a;
+            root = ((half_b * -1.0) + sqrt_discriminant) / a;
             if root < t_min || root > t_max {
                 return None
             }

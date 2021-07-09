@@ -7,9 +7,6 @@ use std::fs::File;
 use std::io::Write;
 use std::path::Path;
 
-use num_traits::cast::FromPrimitive;
-use num_traits::float::Float;
-
 use geometry::point::Point3;
 use geometry::ray::Ray;
 use geometry::vector::Vector3;
@@ -62,51 +59,39 @@ fn main() {
     }
 }
 
-fn ray_colour<T: Float + FromPrimitive>(ray: &Ray<T>) -> Colour<T> {
-    let white = Colour::new(
-        T::from_f32(1.0).unwrap(),
-        T::from_f32(1.0).unwrap(),
-        T::from_f32(1.0).unwrap(),
-    );
-    let blue = Colour::new(
-        T::from_f32(0.5).unwrap(),
-        T::from_f32(0.7).unwrap(),
-        T::from_f32(1.0).unwrap(),
-    );
+fn ray_colour(ray: &Ray) -> Colour {
+    let white = Colour::new(1.0, 1.0, 1.0);
+    let blue = Colour::new(0.5, 0.7, 1.0);
     
     let sphere = Sphere::new(
-        Point3::new(
-            T::from_f32(0.0).unwrap(),
-            T::from_f32(0.0).unwrap(),
-            T::from_f32(-1.0).unwrap(),
-        ),
-        T::from_f32(0.5).unwrap(),
+        Point3::new(0.0, 0.0, -1.0),
+        0.5,
     );
-    if let Some(hit_record) = sphere.hit(&ray, T::zero(), T::infinity()) {
+    if let Some(hit_record) = sphere.hit(&ray, 0.0, f32::INFINITY) {
         let normal = hit_record.normal.normalise();
         return Colour::new(
-            normal.x + T::from_f32(1.0).unwrap(),
-            normal.y + T::from_f32(1.0).unwrap(),
-            normal.z + T::from_f32(1.0).unwrap(),
-        ) * T::from_f32(0.5).unwrap();
+            normal.x + 1.0,
+            normal.y + 1.0,
+            normal.z + 1.0,
+        ) * 0.5;
     }
     
     let unit = ray.direction.normalise();
-    let t: T = T::from_f32(0.5).unwrap() * (unit.y + T::from_f32(1.0).unwrap());
+    let t = 0.5 * (unit.y + 1.0);
 
-    (white * (T::from_f32(1.0).unwrap() - t)) + (blue * t)
+    (white * (1.0 - t)) + (blue * t)
 }
 
-fn write_colour<T: Float + FromPrimitive>(file: &mut File, colour: &Colour<T>) {
-    let scale: T = T::from_f32(255.999).unwrap();
+fn write_colour(file: &mut File, colour: &Colour) {
+    let scale = 255.999;
 
-    let sr: T = scale * colour.r;
-    let sg: T = scale * colour.g;
-    let sb: T = scale * colour.b;
+    let sr = scale * colour.r;
+    let sg = scale * colour.g;
+    let sb = scale * colour.b;
 
-    let ir: isize = sr.to_isize().unwrap();
-    let ig: isize = sg.to_isize().unwrap();
-    let ib: isize = sb.to_isize().unwrap();
+    let ir = sr as isize;
+    let ig = sg as isize;
+    let ib = sb as isize;
 
     file.write_all(format!("{} {} {}\n", ir, ig, ib).as_bytes());
 }
