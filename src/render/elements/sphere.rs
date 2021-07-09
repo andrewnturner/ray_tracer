@@ -55,7 +55,7 @@ impl<T: Float + FromPrimitive> Element<T> for Sphere<T> {
         let p = ray.at(root);
         let normal = (p - self.centre) / self.radius;
 
-        Some(HitRecord::new(p, normal, root))
+        Some(HitRecord::new_from_incident_ray(p, normal, root, &ray))
     }
 }
 
@@ -92,6 +92,7 @@ mod tests {
                 Point3::new(2.0, 0.0, 0.0),
                 Vector3::new(-1.0, 0.0, 0.0),
                 2.0,
+                true
             )),
         );
     }
@@ -133,8 +134,9 @@ mod tests {
             record,
             Some(HitRecord::new(
                 Point3::new(4.0, 0.0, 0.0),
-                Vector3::new(1.0, 0.0, 0.0),
+                Vector3::new(-1.0, 0.0, 0.0),
                 4.0,
+                false,
             )),
         );
     }

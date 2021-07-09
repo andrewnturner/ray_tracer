@@ -73,11 +73,6 @@ fn ray_colour<T: Float + FromPrimitive>(ray: &Ray<T>) -> Colour<T> {
         T::from_f32(0.7).unwrap(),
         T::from_f32(1.0).unwrap(),
     );
-    let red = Colour::new(
-        T::from_f32(1.0).unwrap(),
-        T::from_f32(0.0).unwrap(),
-        T::from_f32(0.0).unwrap(),
-    );
     
     let sphere = Sphere::new(
         Point3::new(
