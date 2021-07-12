@@ -1,23 +1,22 @@
 use super::point::Point3;
-use num_traits::float::Float;
 
 use super::vector::Vector3;
 
 #[derive(Debug, PartialEq, Copy, Clone)]
-pub struct Ray<T: Float> {
-    pub origin: Point3<T>,
-    pub direction: Vector3<T>,
+pub struct Ray {
+    pub origin: Point3,
+    pub direction: Vector3,
 }
 
-impl<T: Float> Ray<T> {
-    pub fn new(origin: Point3<T>, direction: Vector3<T>) -> Self {
+impl Ray {
+    pub fn new(origin: Point3, direction: Vector3) -> Self {
         Ray {
             origin: origin,
             direction: direction,
         }
     }
 
-    pub fn at(&self, t: T) -> Point3<T> {
+    pub fn at(&self, t: f32) -> Point3 {
         self.origin + (self.direction * t)
     }
 }

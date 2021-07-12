@@ -1,18 +1,16 @@
 use std::ops::{Add, Sub};
 
-use num_traits::float::Float;
-
 use super::vector::Vector3;
 
 #[derive(Debug, PartialEq, Copy, Clone)]
-pub struct Point3<T: Float> {
-    pub x: T,
-    pub y: T,
-    pub z: T,
+pub struct Point3 {
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
 }
 
-impl<T: Float> Point3<T> {
-    pub fn new(x: T, y: T, z: T) -> Self {
+impl Point3 {
+    pub fn new(x: f32, y: f32, z: f32) -> Self {
         Point3 {
             x: x,
             y: y,
@@ -22,13 +20,13 @@ impl<T: Float> Point3<T> {
 
     pub fn zero() -> Self {
         Point3 {
-            x: T::zero(),
-            y: T::zero(),
-            z: T::zero(),
+            x: 0.0,
+            y: 0.0,
+            z: 0.0,
         }
     }
 
-    pub fn as_vector3(self) -> Vector3<T> {
+    pub fn as_vector3(self) -> Vector3 {
         Vector3 {
             x: self.x,
             y: self.y,
@@ -37,26 +35,26 @@ impl<T: Float> Point3<T> {
     }
 }
 
-impl <T: Float> Sub for Point3<T> {
-    type Output = Vector3<T>;
+impl Sub for Point3 {
+    type Output = Vector3;
 
-    fn sub(self, other: Self) -> Vector3<T> {
+    fn sub(self, other: Self) -> Vector3 {
         Vector3 { x: self.x - other.x, y: self.y - other.y, z: self.z - other.z }
     }
 }
 
-impl <T: Float> Add<Vector3<T>> for Point3<T> {
+impl Add<Vector3> for Point3 {
     type Output = Self;
 
-    fn add(self, v: Vector3<T>) -> Self {
+    fn add(self, v: Vector3) -> Self {
         Self { x: self.x + v.x, y: self.y + v.y, z: self.z + v.z }
     }
 }
 
-impl <T: Float> Sub<Vector3<T>> for Point3<T> {
+impl Sub<Vector3> for Point3 {
     type Output = Self;
 
-    fn sub(self, v: Vector3<T>) -> Self {
+    fn sub(self, v: Vector3) -> Self {
         Self { x: self.x - v.x, y: self.y - v.y, z: self.z - v.z }
     }
 }

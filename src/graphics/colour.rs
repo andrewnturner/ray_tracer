@@ -1,16 +1,14 @@
 use std::ops::{Add, Mul};
 
-use num_traits::float::Float;
-
 #[derive(Debug, PartialEq, Copy, Clone)]
-pub struct Colour<T: Float> {
-    pub r: T,
-    pub g: T,
-    pub b: T,
+pub struct Colour {
+    pub r: f32,
+    pub g: f32,
+    pub b: f32,
 }
 
-impl<T: Float> Colour<T> {
-    pub fn new(r: T, g: T, b: T) -> Self {
+impl Colour {
+    pub fn new(r: f32, g: f32, b: f32) -> Self {
         Colour {
             r: r,
             g: g,
@@ -19,7 +17,7 @@ impl<T: Float> Colour<T> {
     }
 }
 
-impl<T: Float> Add for Colour<T> {
+impl Add for Colour {
     type Output = Self;
 
     fn add(self, other: Self) -> Self {
@@ -27,10 +25,10 @@ impl<T: Float> Add for Colour<T> {
     }
 }
 
-impl<T: Float> Mul<T> for Colour<T> {
+impl Mul<f32> for Colour {
     type Output = Self;
 
-    fn mul(self, scalar: T) -> Self {
+    fn mul(self, scalar: f32) -> Self {
         Self { r: self.r * scalar, g: self.g * scalar, b: self.b * scalar }
     }
 }
