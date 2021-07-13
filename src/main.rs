@@ -7,9 +7,12 @@ use std::fs::File;
 use std::io::Write;
 use std::path::Path;
 
+use num::clamp;
+use rand::{Rng, thread_rng};
+
 use geometry::point::Point3;
 use geometry::ray::Ray;
-use geometry::vector::Vector3;
+use render::camera::Camera;
 use render::element::Element;
 use render::elements::element_list::ElementList;
 use render::elements::sphere::Sphere;
@@ -20,15 +23,8 @@ fn main() {
     let image_width = 400;
     let image_height = (image_width as f32 / aspect_ratio) as isize;
 
-    let viewport_height = 2.0;
-    let viewport_width = aspect_ratio * viewport_height;
-    let focal_length = 1.0;
-
-    let origin = Point3::zero();
-    let horizontal = Vector3::new(viewport_width, 0.0, 0.0);
-    let vertical = Vector3::new(0.0, viewport_height, 0.0);
-    let depth = Vector3::new(0.0, 0.0, focal_length);
-    let lower_left_corner = origin - (horizontal / 2.0) - (vertical / 2.0) - depth;
+    let samples_per_pixel = 100;
+    let camera = Camera::new();
 
     let world = create_world();
 
@@ -44,20 +40,27 @@ fn main() {
     file.write_all(format!("{} {}\n", image_width, image_height).as_bytes());
     file.write_all("255\n".as_bytes());
 
+    let mut rng = thread_rng();
+
     for j in (0..image_height).rev() {
         println!("Line {} of {}", j + 1, image_height);
 
         for i in 0..image_width {
-            let u = (i as f32) / ((image_width - 1) as f32);
-            let v = (j as f32) / ((image_height - 1) as f32);
+            let mut pixel_colour = Colour::new(0.0, 0.0, 0.0);
 
-            let r = Ray::new(
-                origin,
-                (lower_left_corner + (horizontal * u) + (vertical * v)).as_vector3(),
-            );
+            for s in 0..samples_per_pixel {
+                let u_offset: f32 = rng.gen();
+                let v_offset: f32 = rng.gen();
 
-            let pixel_colour = ray_colour(&r, &world);
-            write_colour(&mut file, &pixel_colour);
+                let u = ((i as f32) + u_offset) / ((image_width - 1) as f32);
+                let v = ((j as f32) + v_offset) / ((image_height - 1) as f32);
+
+                let ray = camera.get_ray(u, v);
+
+                pixel_colour += ray_colour(&ray, &world);
+            }
+            
+            write_colour(&mut file, &pixel_colour, samples_per_pixel);
         }
     }
 }
@@ -93,16 +96,16 @@ fn ray_colour(ray: &Ray, world: &Box<dyn Element>) -> Colour {
     (white * (1.0 - t)) + (blue * t)
 }
 
-fn write_colour(file: &mut File, colour: &Colour) {
-    let scale = 255.999;
+fn write_colour(file: &mut File, colour: &Colour, samples_per_pixel: isize) {
+    let scale = 1.0 / (samples_per_pixel as f32);
 
-    let sr = scale * colour.r;
-    let sg = scale * colour.g;
-    let sb = scale * colour.b;
+    let sr = clamp(scale * colour.r, 0.0, 0.999);
+    let sg = clamp(scale * colour.g, 0.0, 0.999);
+    let sb = clamp(scale * colour.b, 0.0, 0.999);
 
-    let ir = sr as isize;
-    let ig = sg as isize;
-    let ib = sb as isize;
+    let ir = (256.0 * sr) as isize;
+    let ig = (256.0 * sg) as isize;
+    let ib = (256.0 * sb) as isize;
 
     file.write_all(format!("{} {} {}\n", ir, ig, ib).as_bytes());
 }

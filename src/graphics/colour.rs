@@ -1,4 +1,4 @@
-use std::ops::{Add, Mul};
+use std::ops::{Add, AddAssign, Mul};
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub struct Colour {
@@ -22,6 +22,14 @@ impl Add for Colour {
 
     fn add(self, other: Self) -> Self {
         Self { r: self.r + other.r, g: self.g + other.g, b: self.b + other.b }
+    }
+}
+
+impl AddAssign for Colour {
+    fn add_assign(&mut self, other: Self) {
+        self.r += other.r;
+        self.g += other.g;
+        self.b += other.b;
     }
 }
 
@@ -55,6 +63,17 @@ mod tests {
         assert_eq_delta!(out.r, expected.r, 0.0001);
         assert_eq_delta!(out.g, expected.g, 0.0001);
         assert_eq_delta!(out.b, expected.b, 0.0001);
+    }
+
+    #[test]
+    fn add_assign_colour() {
+        let mut c = Colour::new(1.0, 2.0, 3.0);
+        c += Colour::new(2.0, 4.0, 6.0);
+
+        assert_eq!(
+            c,
+            Colour::new(3.0, 6.0, 9.0),
+        );
     }
 
     #[test]
