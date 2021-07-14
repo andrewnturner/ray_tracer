@@ -12,11 +12,12 @@ use rand::{Rng, thread_rng};
 
 use geometry::point::Point3;
 use geometry::ray::Ray;
+use graphics::colour::Colour;
 use render::camera::Camera;
 use render::element::Element;
 use render::elements::element_list::ElementList;
 use render::elements::sphere::Sphere;
-use graphics::colour::Colour;
+use util::random::random_in_unit_sphere;
 
 fn main() {
     let aspect_ratio = 16.0 / 9.0;
@@ -24,6 +25,8 @@ fn main() {
     let image_height = (image_width as f32 / aspect_ratio) as isize;
 
     let samples_per_pixel = 100;
+    let max_depth = 40;
+
     let camera = Camera::new();
 
     let world = create_world();
@@ -57,7 +60,7 @@ fn main() {
 
                 let ray = camera.get_ray(u, v);
 
-                pixel_colour += ray_colour(&ray, &world);
+                pixel_colour += ray_colour(&ray, &world, max_depth);
             }
             
             write_colour(&mut file, &pixel_colour, samples_per_pixel);
@@ -77,17 +80,19 @@ fn create_world() -> Box<dyn Element> {
     Box::new(world)
 }
 
-fn ray_colour(ray: &Ray, world: &Box<dyn Element>) -> Colour {
+fn ray_colour(ray: &Ray, world: &Box<dyn Element>, depth: isize) -> Colour {
     let white = Colour::new(1.0, 1.0, 1.0);
     let blue = Colour::new(0.5, 0.7, 1.0);
+
+    if depth <= 0 {
+        return Colour::new(0.0, 0.0, 0.0);
+    }
     
-    if let Some(hit_record) = world.hit(&ray, 0.0, f32::INFINITY) {
-        let normal = hit_record.normal.normalise();
-        return Colour::new(
-            normal.x + 1.0,
-            normal.y + 1.0,
-            normal.z + 1.0,
-        ) * 0.5;
+    if let Some(hit_record) = world.hit(&ray, 0.001, f32::INFINITY) {
+        let target = hit_record.point + hit_record.normal + random_in_unit_sphere();
+        
+        let new_ray = Ray::new(hit_record.point, target - hit_record.point);
+        return ray_colour(&new_ray, world, depth - 1) * 0.5;
     }
     
     let unit = ray.direction.normalise();
@@ -99,13 +104,14 @@ fn ray_colour(ray: &Ray, world: &Box<dyn Element>) -> Colour {
 fn write_colour(file: &mut File, colour: &Colour, samples_per_pixel: isize) {
     let scale = 1.0 / (samples_per_pixel as f32);
 
-    let sr = clamp(scale * colour.r, 0.0, 0.999);
-    let sg = clamp(scale * colour.g, 0.0, 0.999);
-    let sb = clamp(scale * colour.b, 0.0, 0.999);
+    // Gamma correction with gamma = 2.0
+    let sr = (scale * colour.r).sqrt();
+    let sg = (scale * colour.g).sqrt();
+    let sb = (scale * colour.b).sqrt();
 
-    let ir = (256.0 * sr) as isize;
-    let ig = (256.0 * sg) as isize;
-    let ib = (256.0 * sb) as isize;
+    let ir = (256.0 * clamp(sr, 0.0, 0.999)) as isize;
+    let ig = (256.0 * clamp(sg, 0.0, 0.999)) as isize;
+    let ib = (256.0 * clamp(sb, 0.0, 0.999)) as isize;
 
     file.write_all(format!("{} {} {}\n", ir, ig, ib).as_bytes());
 }
