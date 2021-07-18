@@ -41,9 +41,9 @@ fn main() {
         Err(why) => panic!("Couldn't create {}: {}", display, why),
     };
 
-    file.write_all("P3\n".as_bytes());
-    file.write_all(format!("{} {}\n", image_width, image_height).as_bytes());
-    file.write_all("255\n".as_bytes());
+    file.write_all("P3\n".as_bytes()).unwrap();
+    file.write_all(format!("{} {}\n", image_width, image_height).as_bytes()).unwrap();
+    file.write_all("255\n".as_bytes()).unwrap();
 
     let mut rng = thread_rng();
 
@@ -53,7 +53,7 @@ fn main() {
         for i in 0..image_width {
             let mut pixel_colour = Colour::new(0.0, 0.0, 0.0);
 
-            for s in 0..samples_per_pixel {
+            for _s in 0..samples_per_pixel {
                 let u_offset: f32 = rng.gen();
                 let v_offset: f32 = rng.gen();
 
@@ -145,5 +145,5 @@ fn write_colour(file: &mut File, colour: &Colour, samples_per_pixel: isize) {
     let ig = (256.0 * clamp(sg, 0.0, 0.999)) as isize;
     let ib = (256.0 * clamp(sb, 0.0, 0.999)) as isize;
 
-    file.write_all(format!("{} {} {}\n", ir, ig, ib).as_bytes());
+    file.write_all(format!("{} {} {}\n", ir, ig, ib).as_bytes()).unwrap();
 }
