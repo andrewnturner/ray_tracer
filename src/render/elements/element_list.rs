@@ -1,12 +1,10 @@
 use std::any::Any;
 use std::fmt::Debug;
-use std::rc::Rc;
 
 use crate::geometry::ray::Ray;
 
 use super::super::element::Element;
 use super::super::hit_record::HitRecord;
-use super::super::materials::lambertian::Lambertian;
 
 #[derive(Debug, PartialEq)]
 pub struct ElementList {
@@ -54,12 +52,15 @@ impl Element for ElementList {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use std::rc::Rc;
 
     use crate::geometry::point::Point3;
     use crate::geometry::vector::Vector3;
     use crate::graphics::colour::Colour;
     use crate::render::elements::sphere::Sphere;
+    use crate::render::materials::lambertian::Lambertian;
+
+    use super::*;
 
     #[test]
     fn new_element_list() {

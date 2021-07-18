@@ -18,6 +18,7 @@ use render::camera::Camera;
 use render::element::Element;
 use render::elements::element_list::ElementList;
 use render::elements::sphere::Sphere;
+use render::materials::dielectric::Dielectric;
 use render::materials::lambertian::Lambertian;
 use render::materials::metal::Metal;
 
@@ -41,9 +42,9 @@ fn main() {
         Err(why) => panic!("Couldn't create {}: {}", display, why),
     };
 
-    file.write_all("P3\n".as_bytes());
-    file.write_all(format!("{} {}\n", image_width, image_height).as_bytes());
-    file.write_all("255\n".as_bytes());
+    file.write_all("P3\n".as_bytes()).unwrap();
+    file.write_all(format!("{} {}\n", image_width, image_height).as_bytes()).unwrap();
+    file.write_all("255\n".as_bytes()).unwrap();
 
     let mut rng = thread_rng();
 
@@ -53,7 +54,7 @@ fn main() {
         for i in 0..image_width {
             let mut pixel_colour = Colour::new(0.0, 0.0, 0.0);
 
-            for s in 0..samples_per_pixel {
+            for _s in 0..samples_per_pixel {
                 let u_offset: f32 = rng.gen();
                 let v_offset: f32 = rng.gen();
 
@@ -72,9 +73,9 @@ fn main() {
 
 fn create_world() -> Box<dyn Element> {
     let material_ground = Rc::new(Lambertian::new(Colour::new(0.8, 0.8, 0.0)));
-    let material_red = Rc::new(Lambertian::new(Colour::new(0.7, 0.3, 0.3)));
-    let material_metal = Rc::new(Metal::new(Colour::new(0.8, 0.8, 0.8)));
-    let material_reddish_metal = Rc::new(Metal::new(Colour::new(0.8, 0.6, 0.2)));
+    let material_blue = Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.5)));
+    let material_reddish_metal = Rc::new(Metal::new_with_fuzz(Colour::new(0.8, 0.6, 0.2), 1.0));
+    let material_glass = Rc::new(Dielectric::new(1.5));
 
     let mut world = ElementList::new();
 
@@ -82,28 +83,28 @@ fn create_world() -> Box<dyn Element> {
         Sphere::new(
             Point3::new(0.0, -100.5, -1.0),
             100.0,
-            material_ground,
+            material_ground.clone(),
         )
     ));
     world.add(Box::new(
         Sphere::new(
             Point3::new(0.0, 0.0, -1.0),
             0.5,
-            material_red,
+            material_blue.clone(),
         )
     ));
     world.add(Box::new(
         Sphere::new(
             Point3::new(-1.0, 0.0, -1.0),
             0.5,
-            material_metal,
+            material_glass.clone(),
         )
     ));
     world.add(Box::new(
         Sphere::new(
             Point3::new(1.0, 0.0, -1.0),
             0.5,
-            material_reddish_metal,
+            material_reddish_metal.clone(),
         )
     ));
     
@@ -145,5 +146,5 @@ fn write_colour(file: &mut File, colour: &Colour, samples_per_pixel: isize) {
     let ig = (256.0 * clamp(sg, 0.0, 0.999)) as isize;
     let ib = (256.0 * clamp(sb, 0.0, 0.999)) as isize;
 
-    file.write_all(format!("{} {} {}\n", ir, ig, ib).as_bytes());
+    file.write_all(format!("{} {} {}\n", ir, ig, ib).as_bytes()).unwrap();
 }
