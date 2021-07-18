@@ -18,6 +18,7 @@ use render::camera::Camera;
 use render::element::Element;
 use render::elements::element_list::ElementList;
 use render::elements::sphere::Sphere;
+use render::materials::dielectric::Dielectric;
 use render::materials::lambertian::Lambertian;
 use render::materials::metal::Metal;
 
@@ -72,9 +73,8 @@ fn main() {
 
 fn create_world() -> Box<dyn Element> {
     let material_ground = Rc::new(Lambertian::new(Colour::new(0.8, 0.8, 0.0)));
-    let material_red = Rc::new(Lambertian::new(Colour::new(0.7, 0.3, 0.3)));
-    let material_metal = Rc::new(Metal::new_with_fuzz(Colour::new(0.8, 0.8, 0.8), 0.3));
     let material_reddish_metal = Rc::new(Metal::new_with_fuzz(Colour::new(0.8, 0.6, 0.2), 1.0));
+    let material_glass = Rc::new(Dielectric::new(1.5));
 
     let mut world = ElementList::new();
 
@@ -89,14 +89,14 @@ fn create_world() -> Box<dyn Element> {
         Sphere::new(
             Point3::new(0.0, 0.0, -1.0),
             0.5,
-            material_red,
+            material_glass.clone(),
         )
     ));
     world.add(Box::new(
         Sphere::new(
             Point3::new(-1.0, 0.0, -1.0),
             0.5,
-            material_metal,
+            material_glass,
         )
     ));
     world.add(Box::new(

@@ -52,12 +52,15 @@ impl Element for ElementList {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use std::rc::Rc;
 
     use crate::geometry::point::Point3;
     use crate::geometry::vector::Vector3;
     use crate::graphics::colour::Colour;
     use crate::render::elements::sphere::Sphere;
+    use crate::render::materials::lambertian::Lambertian;
+
+    use super::*;
 
     #[test]
     fn new_element_list() {
