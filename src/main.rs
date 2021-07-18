@@ -6,6 +6,7 @@ mod util;
 use std::fs::File;
 use std::io::Write;
 use std::path::Path;
+use std::rc::Rc;
 
 use num::clamp;
 use rand::{Rng, thread_rng};
@@ -17,7 +18,8 @@ use render::camera::Camera;
 use render::element::Element;
 use render::elements::element_list::ElementList;
 use render::elements::sphere::Sphere;
-use util::random::random_in_unit_sphere;
+use render::materials::lambertian::Lambertian;
+use render::materials::metal::Metal;
 
 fn main() {
     let aspect_ratio = 16.0 / 9.0;
@@ -69,13 +71,42 @@ fn main() {
 }
 
 fn create_world() -> Box<dyn Element> {
+    let material_ground = Rc::new(Lambertian::new(Colour::new(0.8, 0.8, 0.0)));
+    let material_red = Rc::new(Lambertian::new(Colour::new(0.7, 0.3, 0.3)));
+    let material_metal = Rc::new(Metal::new(Colour::new(0.8, 0.8, 0.8)));
+    let material_reddish_metal = Rc::new(Metal::new(Colour::new(0.8, 0.6, 0.2)));
+
     let mut world = ElementList::new();
+
     world.add(Box::new(
-        Sphere::new(Point3::new(0.0, 0.0, -1.0), 0.5)
+        Sphere::new(
+            Point3::new(0.0, -100.5, -1.0),
+            100.0,
+            material_ground,
+        )
     ));
     world.add(Box::new(
-        Sphere::new(Point3::new(0.0, -100.5, -1.0), 100.0)
+        Sphere::new(
+            Point3::new(0.0, 0.0, -1.0),
+            0.5,
+            material_red,
+        )
     ));
+    world.add(Box::new(
+        Sphere::new(
+            Point3::new(-1.0, 0.0, -1.0),
+            0.5,
+            material_metal,
+        )
+    ));
+    world.add(Box::new(
+        Sphere::new(
+            Point3::new(1.0, 0.0, -1.0),
+            0.5,
+            material_reddish_metal,
+        )
+    ));
+    
 
     Box::new(world)
 }
@@ -89,10 +120,11 @@ fn ray_colour(ray: &Ray, world: &Box<dyn Element>, depth: isize) -> Colour {
     }
     
     if let Some(hit_record) = world.hit(&ray, 0.001, f32::INFINITY) {
-        let target = hit_record.point + hit_record.normal + random_in_unit_sphere();
+        if let Some((attenuation, scattered)) = hit_record.material.scatter(&ray, &hit_record) {
+            return ray_colour(&scattered, world, depth - 1) * attenuation;
+        }
         
-        let new_ray = Ray::new(hit_record.point, target - hit_record.point);
-        return ray_colour(&new_ray, world, depth - 1) * 0.5;
+        return Colour::new(0.0, 0.0, 0.0);
     }
     
     let unit = ray.direction.normalise();

@@ -33,6 +33,18 @@ impl AddAssign for Colour {
     }
 }
 
+impl Mul for Colour {
+    type Output = Self;
+
+    fn mul(self, other: Self) -> Self {
+        Self {
+            r: self.r * other.r,
+            g: self.g * other.g,
+            b: self.b * other.b,
+        }
+    }
+}
+
 impl Mul<f32> for Colour {
     type Output = Self;
 
@@ -73,6 +85,14 @@ mod tests {
         assert_eq!(
             c,
             Colour::new(3.0, 6.0, 9.0),
+        );
+    }
+
+    #[test]
+    fn multiply_colour() {
+        assert_eq!(
+            Colour::new(0.6, 0.8, 1.0) * Colour::new(0.5, 0.5, 1.0),
+            Colour::new(0.3, 0.4, 1.0),
         );
     }
 
