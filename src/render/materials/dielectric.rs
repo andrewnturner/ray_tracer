@@ -6,6 +6,7 @@ use crate::graphics::colour::Colour;
 use crate::render::hit_record::HitRecord;
 
 use super::super::material::Material;
+use super::super::materials::metal::reflect;
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub struct Dielectric {
@@ -29,10 +30,19 @@ impl Material for Dielectric {
         };
 
         let unit_direction = ray.direction.normalise();
-        let refracted = refract(unit_direction, hit_record.normal, refraction_ratio);
+
+        let cos_theta = (unit_direction * -1.0).dot(&hit_record.normal).min(1.0);
+        let sin_theta = (1.0 - (cos_theta * cos_theta)).sqrt();
+        let cannot_refract = refraction_ratio * sin_theta > 1.0;
+
+        let direction = if cannot_refract {
+            reflect(unit_direction, hit_record.normal)
+        } else {
+            refract(unit_direction, hit_record.normal, refraction_ratio)
+        };
 
         let attenuation = Colour::new(1.0, 1.0, 1.0);
-        let scattered = Ray::new(hit_record.point, refracted);
+        let scattered = Ray::new(hit_record.point, direction);
 
         Some((attenuation, scattered))
     }
