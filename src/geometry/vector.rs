@@ -1,4 +1,4 @@
-use std::ops::{Mul, Div};
+use std::ops::{Add, Mul, Div};
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub struct Vector3 {
@@ -44,6 +44,22 @@ impl Vector3 {
 
     pub fn dot(&self, other: &Self) -> f32 {
         (self.x * other.x) + (self.y * other.y) + (self.z * other.z)
+    }
+
+    pub fn near_zero(&self) -> bool {
+        let tolerance = 1e-8;
+
+        (self.x.abs() < tolerance) &&
+        (self.y.abs() < tolerance) &&
+        (self.z.abs() < tolerance)
+    }
+}
+
+impl Add for Vector3 {
+    type Output = Self;
+
+    fn add(self, other: Self) -> Self {
+        Self { x: self.x + other.x, y: self.y + other.y, z: self.z + other.z }
     }
 }
 
@@ -114,6 +130,28 @@ mod tests {
         let w = Vector3 { x: 3.0, y: 4.0, z: 5.0 };
 
         assert_eq!(v.dot(&w), -26.0);
+    }
+
+    #[test]
+    fn near_zero_vector3() {
+        let v = Vector3::new(1e-9, 1e-9, 1e-9);
+
+        assert!(v.near_zero());
+    }
+
+    #[test]
+    fn not_near_zero_vector3() {
+        let v = Vector3::new(1e-6, 1e-9, 1e-9);
+
+        assert!(!v.near_zero());
+    }
+
+    #[test]
+    fn add_vector3() {
+        let v = Vector3 { x: 1.0, y: 2.0, z: 3.0 };
+        let w = Vector3 { x: 2.0, y: 3.0, z: 4.0 };
+
+        assert_eq!(v + w, Vector3 { x: 3.0, y: 5.0, z: 7.0 });
     }
 
     #[test]

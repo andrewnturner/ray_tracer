@@ -1,11 +1,14 @@
-use core::fmt::Debug;
+use std::any::Any;
+use std::fmt::Debug;
+use std::rc::Rc;
 
 use crate::geometry::ray::Ray;
 
 use super::super::element::Element;
 use super::super::hit_record::HitRecord;
+use super::super::materials::lambertian::Lambertian;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct ElementList {
     pub elements: Vec<Box<dyn Element>>,
 }
@@ -30,7 +33,7 @@ impl Element for ElementList {
         for element in self.elements.iter() {
             match element.hit(ray, t_min, closest_t) {
                 Some(hit_record) => {
-                    closest_hit_record = Some(hit_record);
+                    closest_hit_record = Some(hit_record.clone());
                     closest_t = hit_record.t;
                 },
                 None => {},
@@ -38,6 +41,14 @@ impl Element for ElementList {
         }
 
         closest_hit_record
+    }
+
+    fn eq(&self, other: &dyn Element) -> bool {
+        other.as_any().downcast_ref::<Self>().map_or(false, |x| x == self)
+    }
+
+    fn as_any(&self) -> &dyn Any {
+        self
     }
 }
 
@@ -47,40 +58,57 @@ mod tests {
 
     use crate::geometry::point::Point3;
     use crate::geometry::vector::Vector3;
+    use crate::graphics::colour::Colour;
     use crate::render::elements::sphere::Sphere;
 
     #[test]
     fn new_element_list() {
         assert_eq!(
-            format!("{:?}", ElementList::new()),
-            format!("{:?}", ElementList { elements: Vec::new() }),
+            ElementList::new(),
+            ElementList { elements: Vec::new() },
         )
     }
 
     #[test]
     fn add_to_element_list() {
         let mut list = ElementList::new();
-        list.add(Box::new(Sphere::new(Point3::new(1.0, 2.0, 3.0), 5.0)));
+        list.add(Box::new(Sphere::new(
+            Point3::new(1.0, 2.0, 3.0),
+            5.0,
+            Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+        )));
 
         let mut expected_elements: Vec<Box<dyn Element>> = Vec::new();
         expected_elements.push(
-            Box::new(Sphere::new(Point3::new(1.0, 2.0, 3.0), 5.0)) as Box<dyn Element>
+            Box::new(Sphere::new(
+                Point3::new(1.0, 2.0, 3.0),
+                5.0,
+                Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+            )) as Box<dyn Element>
         );
         let expected = ElementList {
             elements: expected_elements,
         };
 
         assert_eq!(
-            format!("{:?}", list),
-            format!("{:?}", expected),
+            list,
+            expected,
         )
     }
 
     #[test]
     fn hit_correct_element_first() {
         let mut list = ElementList::new();
-        list.add(Box::new(Sphere::new(Point3::new(4.0, 0.0, 0.0), 1.0)));
-        list.add(Box::new(Sphere::new(Point3::new(7.0, 0.0, 0.0), 1.0)));
+        list.add(Box::new(Sphere::new(
+            Point3::new(4.0, 0.0, 0.0),
+            1.0,
+            Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+        )));
+        list.add(Box::new(Sphere::new(
+            Point3::new(7.0, 0.0, 0.0),
+            1.0,
+            Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+        )));
 
         let ray = Ray::new(Point3::zero(), Vector3::new(1.0, 0.0, 0.0));
 
@@ -91,6 +119,7 @@ mod tests {
             Some(HitRecord::new(
                 Point3::new(3.0, 0.0, 0.0),
                 Vector3::new(-1.0, 0.0, 0.0),
+                Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
                 3.0,
                 true
             )),
@@ -100,8 +129,16 @@ mod tests {
     #[test]
     fn hit_correct_element_second() {
         let mut list = ElementList::new();
-        list.add(Box::new(Sphere::new(Point3::new(7.0, 0.0, 0.0), 1.0)));
-        list.add(Box::new(Sphere::new(Point3::new(4.0, 0.0, 0.0), 1.0)));
+        list.add(Box::new(Sphere::new(
+            Point3::new(7.0, 0.0, 0.0),
+            1.0,
+            Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+        )));
+        list.add(Box::new(Sphere::new(
+            Point3::new(4.0, 0.0, 0.0),
+            1.0,
+            Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+        )));
 
         let ray = Ray::new(Point3::zero(), Vector3::new(1.0, 0.0, 0.0));
 
@@ -112,6 +149,7 @@ mod tests {
             Some(HitRecord::new(
                 Point3::new(3.0, 0.0, 0.0),
                 Vector3::new(-1.0, 0.0, 0.0),
+                Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
                 3.0,
                 true
             )),

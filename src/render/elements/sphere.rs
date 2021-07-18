@@ -1,22 +1,27 @@
+use std::any::Any;
 use std::fmt::Debug;
+use std::rc::Rc;
 
 use crate::geometry::point::Point3;
 use crate::geometry::ray::Ray;
 
 use super::super::element::Element;
 use super::super::hit_record::HitRecord;
+use super::super::material::Material;
 
-#[derive(Debug, PartialEq, Copy, Clone)]
+#[derive(Debug, Clone)]
 pub struct Sphere {
     pub centre: Point3,
     pub radius: f32,
+    pub material: Rc<dyn Material>,
 }
 
 impl Sphere {
-    pub fn new(centre: Point3, radius: f32) -> Self {
+    pub fn new(centre: Point3, radius: f32, material: Rc<dyn Material>) -> Self {
         Sphere {
             centre: centre,
             radius: radius,
+            material: material,
         }
     }
 }
@@ -54,15 +59,39 @@ impl Element for Sphere {
         let p = ray.at(root);
         let normal = (p - self.centre) / self.radius;
 
-        Some(HitRecord::new_from_incident_ray(p, normal, root, &ray))
+        Some(HitRecord::new_from_incident_ray(
+            p,
+            normal,
+            root,
+            &ray,
+            self.material.clone(),
+        ))
+    }
+
+    fn eq(&self, other: &dyn Element) -> bool {
+        other.as_any().downcast_ref::<Self>().map_or(false, |x| x == self)
+    }
+
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+}
+
+impl PartialEq for Sphere {
+    fn eq(&self, other: &Self) -> bool {
+        (self.centre == other.centre) &&
+        (self.radius == other.radius) && 
+        (*self.material == *other.material)
     }
 }
 
 #[cfg(test)]
 mod tests {
     use crate::geometry::vector::Vector3;
+    use crate::graphics::colour::Colour;
 
     use super::*;
+    use super::super::super::materials::lambertian::Lambertian;
 
     #[test]
     fn new_sphere() {
@@ -70,18 +99,24 @@ mod tests {
             Sphere::new(
                 Point3::new(1.0, 2.0, 3.0),
                 5.0,
+                Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
             ),
             Sphere {
                 centre: Point3 { x: 1.0, y: 2.0, z: 3.0 },
                 radius: 5.0,
-            }
+                material: Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+            },
         )
     }
 
     #[test]
     fn hit_sphere() {
         let ray = Ray::new(Point3::zero(), Vector3::new(1.0, 0.0, 0.0));
-        let sphere = Sphere::new(Point3::new(3.0, 0.0, 0.0), 1.0);
+        let sphere = Sphere::new(
+            Point3::new(3.0, 0.0, 0.0),
+            1.0,
+            Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+        );
 
         let record = sphere.hit(&ray, 0.0, f32::INFINITY);
 
@@ -90,8 +125,9 @@ mod tests {
             Some(HitRecord::new(
                 Point3::new(2.0, 0.0, 0.0),
                 Vector3::new(-1.0, 0.0, 0.0),
+                Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
                 2.0,
-                true
+                true,
             )),
         );
     }
@@ -99,33 +135,47 @@ mod tests {
     #[test]
     fn hit_sphere_misses_t_min() {
         let ray = Ray::new(Point3::zero(), Vector3::new(1.0, 0.0, 0.0));
-        let sphere = Sphere::new(Point3::new(3.0, 0.0, 0.0), 1.0);
+        let sphere = Sphere::new(
+            Point3::new(3.0, 0.0, 0.0),
+            1.0,
+            Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+        );
 
         let record = sphere.hit(&ray, 5.0, f32::INFINITY);
 
+        let expected: Option<HitRecord> = None;
         assert_eq!(
             record,
-            None,
+            expected,
         );
     }
 
     #[test]
     fn hit_sphere_misses_t_max() {
         let ray = Ray::new(Point3::zero(), Vector3::new(1.0, 0.0, 0.0));
-        let sphere = Sphere::new(Point3::new(3.0, 0.0, 0.0), 1.0);
+        let sphere = Sphere::new(
+            Point3::new(3.0, 0.0, 0.0),
+            1.0,
+            Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+        );
 
         let record = sphere.hit(&ray, 0.0, 1.0);
 
+        let expected: Option<HitRecord> = None;
         assert_eq!(
             record,
-            None,
+            expected,
         );
     }
 
     #[test]
     fn hit_sphere_other_root() {
         let ray = Ray::new(Point3::zero(), Vector3::new(1.0, 0.0, 0.0));
-        let sphere = Sphere::new(Point3::new(3.0, 0.0, 0.0), 1.0);
+        let sphere = Sphere::new(
+            Point3::new(3.0, 0.0, 0.0),
+            1.0,
+            Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+        );
 
         let record = sphere.hit(&ray, 3.0, f32::INFINITY);
 
@@ -134,6 +184,7 @@ mod tests {
             Some(HitRecord::new(
                 Point3::new(4.0, 0.0, 0.0),
                 Vector3::new(-1.0, 0.0, 0.0),
+                Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
                 4.0,
                 false,
             )),
