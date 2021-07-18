@@ -1,5 +1,7 @@
 use std::any::Any;
 
+use rand::{thread_rng, Rng};
+
 use crate::geometry::vector::Vector3;
 use crate::geometry::ray::Ray;
 use crate::graphics::colour::Colour;
@@ -35,7 +37,9 @@ impl Material for Dielectric {
         let sin_theta = (1.0 - (cos_theta * cos_theta)).sqrt();
         let cannot_refract = refraction_ratio * sin_theta > 1.0;
 
-        let direction = if cannot_refract {
+        let mut rng = thread_rng();
+
+        let direction = if cannot_refract || (reflectance(cos_theta, refraction_ratio) > rng.gen()) {
             reflect(unit_direction, hit_record.normal)
         } else {
             refract(unit_direction, hit_record.normal, refraction_ratio)
@@ -62,6 +66,14 @@ fn refract(v: Vector3, n: Vector3, eta_i_over_eta_t: f32) -> Vector3 {
     let r_parallel = n * -(1.0 - r_perpendicular.length_squared()).abs().sqrt();
 
     r_perpendicular + r_parallel
+}
+
+/// Schlick approximation
+fn reflectance(cos_theta: f32, refraction_ratio: f32) -> f32 {
+    let sqrt_r0 = (1.0 - refraction_ratio) / (1.0 + refraction_ratio);
+    let r0 = sqrt_r0 * sqrt_r0;
+
+    r0 + ((1.0 - r0) * (1.0 - cos_theta).powi(5))
 }
 
 #[cfg(test)]
