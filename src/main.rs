@@ -73,8 +73,8 @@ fn main() {
 fn create_world() -> Box<dyn Element> {
     let material_ground = Rc::new(Lambertian::new(Colour::new(0.8, 0.8, 0.0)));
     let material_red = Rc::new(Lambertian::new(Colour::new(0.7, 0.3, 0.3)));
-    let material_metal = Rc::new(Metal::new(Colour::new(0.8, 0.8, 0.8)));
-    let material_reddish_metal = Rc::new(Metal::new(Colour::new(0.8, 0.6, 0.2)));
+    let material_metal = Rc::new(Metal::new_with_fuzz(Colour::new(0.8, 0.8, 0.8), 0.3));
+    let material_reddish_metal = Rc::new(Metal::new_with_fuzz(Colour::new(0.8, 0.6, 0.2), 1.0));
 
     let mut world = ElementList::new();
 

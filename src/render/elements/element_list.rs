@@ -1,12 +1,10 @@
 use std::any::Any;
 use std::fmt::Debug;
-use std::rc::Rc;
 
 use crate::geometry::ray::Ray;
 
 use super::super::element::Element;
 use super::super::hit_record::HitRecord;
-use super::super::materials::lambertian::Lambertian;
 
 #[derive(Debug, PartialEq)]
 pub struct ElementList {
