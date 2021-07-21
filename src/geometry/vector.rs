@@ -53,6 +53,14 @@ impl Vector3 {
         (self.y.abs() < tolerance) &&
         (self.z.abs() < tolerance)
     }
+
+    pub fn cross(&self, other: &Self) -> Self {
+        Self {
+            x: (self.y * other.z) - (self.z * other.y),
+            y: (self.z * other.x) - (self.x * other.z),
+            z: (self.x * other.y) - (self.y * other.x),
+        }
+    }
 }
 
 impl Add for Vector3 {
@@ -144,6 +152,14 @@ mod tests {
         let v = Vector3::new(1e-6, 1e-9, 1e-9);
 
         assert!(!v.near_zero());
+    }
+
+    #[test]
+    fn cross_vector3() {
+        let v = Vector3 { x: -1.0, y: 2.0, z: -3.0 };
+        let w = Vector3 { x: 4.0, y: 5.0, z: 6.0 };
+
+        assert_eq!(v.cross(&w), Vector3 { x: 27.0, y: -6.0, z: -13.0 });
     }
 
     #[test]

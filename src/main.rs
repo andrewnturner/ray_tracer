@@ -3,7 +3,6 @@ mod graphics;
 mod render;
 mod util;
 
-use std::f32::consts::PI;
 use std::fs::File;
 use std::io::Write;
 use std::path::Path;
@@ -14,6 +13,7 @@ use rand::{Rng, thread_rng};
 
 use geometry::point::Point3;
 use geometry::ray::Ray;
+use geometry::vector::Vector3;
 use graphics::colour::Colour;
 use render::camera::Camera;
 use render::element::Element;
@@ -31,7 +31,13 @@ fn main() {
     let samples_per_pixel = 100;
     let max_depth = 40;
 
-    let camera = Camera::new(90.0, aspect_ratio);
+    let camera = Camera::new(
+        Point3::new(-2.0, 2.0, 1.0),
+        Point3::new(0.0, 0.0, -1.0),
+        Vector3::new(0.0, 1.0, 0.0),
+        20.0,
+        aspect_ratio,
+    );
 
     let world = create_world();
 
@@ -73,25 +79,39 @@ fn main() {
 }
 
 fn create_world() -> Box<dyn Element> {
-    let material_red = Rc::new(Lambertian::new(Colour::new(1.0, 0.0, 0.0)));
-    let material_blue = Rc::new(Lambertian::new(Colour::new(0.0, 0.0, 1.0)));
+    let material_ground = Rc::new(Lambertian::new(Colour::new(0.8, 0.8, 0.0)));
+    let material_centre = Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.5)));
+    let material_left = Rc::new(Dielectric::new(1.5));
+    let material_right = Rc::new(Metal::new(Colour::new(0.8, 0.6, 0.2)));
 
     let mut world = ElementList::new();
 
-    let r = (PI / 4.0).cos();
-
     world.add(Box::new(
         Sphere::new(
-            Point3::new(r, 0.0, -1.0),
-            r,
-            material_red.clone(),
+            Point3::new(0.0, -100.5, -1.0),
+            100.0,
+            material_ground.clone(),
         )
     ));
     world.add(Box::new(
         Sphere::new(
-            Point3::new(-r, 0.0, -1.0),
-            r,
-            material_blue.clone(),
+            Point3::new(0.0, 0.0, -1.0),
+            0.5,
+            material_centre.clone(),
+        )
+    ));
+    world.add(Box::new(
+        Sphere::new(
+            Point3::new(-1.0, 0.0, -1.0),
+            0.5,
+            material_left.clone(),
+        )
+    ));
+    world.add(Box::new(
+        Sphere::new(
+            Point3::new(1.0, 0.0, -1.0),
+            0.5,
+            material_right.clone(),
         )
     ));
 
