@@ -6,6 +6,7 @@ use super::vector::Vector3;
 pub struct Ray {
     pub origin: Point3,
     pub direction: Vector3,
+    pub time: f32,
 }
 
 impl Ray {
@@ -13,6 +14,15 @@ impl Ray {
         Ray {
             origin: origin,
             direction: direction,
+            time: 0.0,
+        }
+    }
+
+    pub fn new_at_time(origin: Point3, direction: Vector3, time: f32) -> Self {
+        Ray {
+            origin: origin,
+            direction: direction,
+            time: time,
         }
     }
 
@@ -35,6 +45,23 @@ mod tests {
             Ray {
                 origin: Point3 { x: 1.0, y: 2.0, z: 3.0 },
                 direction: Vector3 { x: 4.0, y: 5.0, z: 6.0 },
+                time: 0.0,
+            },
+        );
+    }
+
+    #[test]
+    fn new_ray_at_time2() {
+        assert_eq!(
+            Ray::new_at_time(
+                Point3::new(1.0, 2.0, 3.0),
+                Vector3::new(4.0, 5.0, 6.0),
+                1.0,
+            ),
+            Ray {
+                origin: Point3 { x: 1.0, y: 2.0, z: 3.0 },
+                direction: Vector3 { x: 4.0, y: 5.0, z: 6.0 },
+                time: 1.0,
             },
         );
     }

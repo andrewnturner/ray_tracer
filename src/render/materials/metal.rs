@@ -34,7 +34,7 @@ impl Material for Metal {
     fn scatter(&self, ray: &Ray, hit_record: &HitRecord) -> Option<(Colour, Ray)> {
         let reflected = reflect(ray.direction.normalise(), hit_record.normal);
         let fuzz_vector = random_in_unit_sphere() * self.fuzz;
-        let scattered =  Ray::new(hit_record.point, reflected + fuzz_vector);
+        let scattered =  Ray::new_at_time(hit_record.point, reflected + fuzz_vector, ray.time);
 
         if scattered.direction.dot(&hit_record.normal) > 0.0 {
             Some((
