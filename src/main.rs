@@ -13,6 +13,7 @@ use rand::{Rng, thread_rng};
 
 use geometry::point::Point3;
 use geometry::ray::Ray;
+use geometry::vector::Vector3;
 use graphics::colour::Colour;
 use render::camera::Camera;
 use render::element::Element;
@@ -30,7 +31,18 @@ fn main() {
     let samples_per_pixel = 100;
     let max_depth = 40;
 
-    let camera = Camera::new();
+    let look_at = Point3::new(-2.0, 2.0, 1.0);
+    let look_from = Point3::new(0.0, 0.0, -1.0);
+
+    let camera = Camera::new(
+        look_at,
+        look_from,
+        Vector3::new(0.0, 1.0, 0.0),
+        20.0,
+        aspect_ratio,
+        0.1,
+        (look_at - look_from).length(),
+    );
 
     let world = create_world();
 
@@ -73,9 +85,9 @@ fn main() {
 
 fn create_world() -> Box<dyn Element> {
     let material_ground = Rc::new(Lambertian::new(Colour::new(0.8, 0.8, 0.0)));
-    let material_blue = Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.5)));
-    let material_reddish_metal = Rc::new(Metal::new_with_fuzz(Colour::new(0.8, 0.6, 0.2), 1.0));
-    let material_glass = Rc::new(Dielectric::new(1.5));
+    let material_centre = Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.5)));
+    let material_left = Rc::new(Dielectric::new(1.5));
+    let material_right = Rc::new(Metal::new(Colour::new(0.8, 0.6, 0.2)));
 
     let mut world = ElementList::new();
 
@@ -90,24 +102,23 @@ fn create_world() -> Box<dyn Element> {
         Sphere::new(
             Point3::new(0.0, 0.0, -1.0),
             0.5,
-            material_blue.clone(),
+            material_centre.clone(),
         )
     ));
     world.add(Box::new(
         Sphere::new(
             Point3::new(-1.0, 0.0, -1.0),
             0.5,
-            material_glass.clone(),
+            material_left.clone(),
         )
     ));
     world.add(Box::new(
         Sphere::new(
             Point3::new(1.0, 0.0, -1.0),
             0.5,
-            material_reddish_metal.clone(),
+            material_right.clone(),
         )
     ));
-    
 
     Box::new(world)
 }
