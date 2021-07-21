@@ -46,7 +46,7 @@ impl Material for Dielectric {
         };
 
         let attenuation = Colour::new(1.0, 1.0, 1.0);
-        let scattered = Ray::new(hit_record.point, direction);
+        let scattered = Ray::new_at_time(hit_record.point, direction, ray.time);
 
         Some((attenuation, scattered))
     }

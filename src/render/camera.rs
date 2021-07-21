@@ -1,3 +1,5 @@
+use rand::{Rng, thread_rng};
+
 use crate::geometry::point::Point3;
 use crate::geometry::ray::Ray;
 use crate::geometry::vector::Vector3;
@@ -13,6 +15,8 @@ pub struct Camera {
     v: Vector3,
     w: Vector3,
     lens_radius: f32,
+    time_0: f32,
+    time_1: f32,
 }
 
 impl Camera {
@@ -24,6 +28,8 @@ impl Camera {
         aspect_ratio: f32,
         aperture: f32,
         focus_distance: f32,
+        time_0: f32,
+        time_1: f32,
     ) -> Self {
         let theta = vertical_fov.to_radians();
         let h = (theta / 2.0).tan();
@@ -50,6 +56,8 @@ impl Camera {
             v: v,
             w: w,
             lens_radius: lens_radius,
+            time_0: time_0,
+            time_1: time_1,
         }
     }
 
@@ -57,9 +65,12 @@ impl Camera {
         let point_on_lens = random_in_unit_disk() * self.lens_radius;
         let offset = (self.u * point_on_lens.x) + (self.v * point_on_lens.y);
 
-         let ray = Ray::new(
+        let mut rng = thread_rng();
+
+        let ray = Ray::new_at_time(
             self.origin + offset,
             self.lower_left_corner + (self.horizontal * s) + (self.vertical * t) - (self.origin + offset),
+            rng.gen_range(self.time_0..self.time_1),
         );
 
         ray
@@ -78,7 +89,11 @@ mod tests {
                 Point3::new(-1.0, 0.0, 0.0),
                 Vector3::new(0.0, 1.0, 0.0),
                 90.0,
-                4.0 / 3.0
+                4.0 / 3.0,
+                0.5,
+                2.0,
+                0.0,
+                1.0,
             ).origin,
             Point3::new(0.0, 0.0, 0.0),
         );

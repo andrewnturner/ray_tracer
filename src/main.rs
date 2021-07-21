@@ -18,6 +18,7 @@ use graphics::colour::Colour;
 use render::camera::Camera;
 use render::element::Element;
 use render::elements::element_list::ElementList;
+use render::elements::moving_sphere::MovingSphere;
 use render::elements::sphere::Sphere;
 use render::materials::dielectric::Dielectric;
 use render::materials::lambertian::Lambertian;
@@ -29,7 +30,7 @@ fn main() {
     let image_height = (image_width as f32 / aspect_ratio) as isize;
 
     let samples_per_pixel = 100;
-    let max_depth = 40;
+    let max_depth = 30;
 
     let look_at = Point3::new(-2.0, 2.0, 1.0);
     let look_from = Point3::new(0.0, 0.0, -1.0);
@@ -38,10 +39,12 @@ fn main() {
         look_at,
         look_from,
         Vector3::new(0.0, 1.0, 0.0),
-        20.0,
+        45.0,
         aspect_ratio,
         0.1,
         (look_at - look_from).length(),
+        0.0,
+        1.0,
     );
 
     let world = create_world();
@@ -99,8 +102,11 @@ fn create_world() -> Box<dyn Element> {
         )
     ));
     world.add(Box::new(
-        Sphere::new(
-            Point3::new(0.0, 0.0, -1.0),
+        MovingSphere::new(
+            Point3::new(0.0, 0.0, -0.5),
+            Point3::new(0.0, 0.0, -1.5),
+            0.0,
+            1.0,
             0.5,
             material_centre.clone(),
         )
