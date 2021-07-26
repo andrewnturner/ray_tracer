@@ -2,8 +2,10 @@ use std::any::Any;
 use std::fmt::Debug;
 use std::rc::Rc;
 
+use crate::geometry::bounding_box::BoundingBox;
 use crate::geometry::point::Point3;
 use crate::geometry::ray::Ray;
+use crate::geometry::vector::Vector3;
 
 use super::super::element::Element;
 use super::super::hit_record::HitRecord;
@@ -85,6 +87,19 @@ impl Element for MovingSphere {
             &ray,
             self.material.clone(),
         ))
+    }
+
+    fn bounding_box(&self, time_0: f32, time_1: f32) -> Option<BoundingBox> {
+        let box_0 = BoundingBox::new(
+            self.centre_at(time_0) - Vector3::new(self.radius, self.radius, self.radius),
+            self.centre_at(time_0) + Vector3::new(self.radius, self.radius, self.radius),
+        );
+        let box_1 = BoundingBox::new(
+            self.centre_at(time_1) - Vector3::new(self.radius, self.radius, self.radius),
+            self.centre_at(time_1) + Vector3::new(self.radius, self.radius, self.radius),
+        );
+
+        Some(box_0.union(&box_1))
     }
 
     fn eq(&self, other: &dyn Element) -> bool {
@@ -227,6 +242,26 @@ mod tests {
                 Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
                 4.0,
                 false,
+            )),
+        );
+    }
+
+    #[test]
+    fn moving_sphere_bounding_box() {
+        let s = MovingSphere::new(
+            Point3::new(1.0, 2.0, 3.0),
+            Point3::new(3.0, 2.0, 3.0),
+            1.0,
+            3.0,
+            1.0,
+            Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+        );
+
+        assert_eq!(
+            s.bounding_box(1.0, 2.0),
+            Some(BoundingBox::new(
+                Point3::new(0.0, 1.0, 2.0),
+                Point3::new(3.0, 3.0, 4.0),
             )),
         );
     }

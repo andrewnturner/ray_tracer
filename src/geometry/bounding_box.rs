@@ -52,6 +52,24 @@ impl BoundingBox {
 
         (t_1b_x > t_0b_x) && (t_1b_y > t_0b_y) && (t_1b_z > t_0b_z)
     }
+
+    pub fn union(&self, other: &Self) -> Self {
+        let min = Point3::new(
+            self.min.x.min(other.min.x),
+            self.min.y.min(other.min.y),
+            self.min.z.min(other.min.z),
+        );
+        let max = Point3::new(
+            self.max.x.max(other.max.x),
+            self.max.y.max(other.max.y),
+            self.max.z.max(other.max.z),
+        );
+
+        BoundingBox {
+            min: min,
+            max: max,
+        }
+    }
 }
 
 #[cfg(test)]
@@ -130,6 +148,27 @@ mod tests {
         assert_eq!(
             b.hit(&ray, 0.0, 0.5),
             false,
+        );
+    }
+
+    #[test]
+    fn union_bounding_box() {
+        let b_1 = BoundingBox::new(
+            Point3::new(-3.0, -1.0, 0.0),
+            Point3::new(3.0, 1.0, 1.0),
+        );
+
+        let b_2 = BoundingBox::new(
+            Point3::new(-1.0, -3.0, 0.0),
+            Point3::new(1.0, 3.0, 1.0),
+        );
+
+        assert_eq!(
+            b_1.union(&b_2),
+            BoundingBox::new(
+                Point3::new(-3.0, -3.0, 0.0),
+                Point3::new(3.0, 3.0, 1.0),
+            ),
         );
     }
 }

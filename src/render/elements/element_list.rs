@@ -1,6 +1,7 @@
 use std::any::Any;
 use std::fmt::Debug;
 
+use crate::geometry::bounding_box::BoundingBox;
 use crate::geometry::ray::Ray;
 
 use super::super::element::Element;
@@ -39,6 +40,22 @@ impl Element for ElementList {
         }
 
         closest_hit_record
+    }
+
+    fn bounding_box(&self, time_0: f32, time_1: f32) -> Option<BoundingBox> {
+        let mut surrounding_box: Option<BoundingBox> = None;
+        for element in self.elements.iter() {
+            if let Some(b) = element.bounding_box(time_0, time_1) {
+                surrounding_box = match surrounding_box {
+                    Some(a) => Some(a.union(&b)),
+                    None => Some(b),
+                }
+            } else {
+                return None;
+            }
+        }
+
+        surrounding_box
     }
 
     fn eq(&self, other: &dyn Element) -> bool {
@@ -155,5 +172,38 @@ mod tests {
                 true
             )),
         )
+    }
+
+    #[test]
+    fn element_list_bounding_box() {
+        let mut list = ElementList::new();
+        list.add(Box::new(Sphere::new(
+            Point3::new(7.0, 0.0, 0.0),
+            1.0,
+            Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+        )));
+        list.add(Box::new(Sphere::new(
+            Point3::new(4.0, 0.0, 0.0),
+            1.0,
+            Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+        )));
+
+        assert_eq!(
+            list.bounding_box(0.0, 1.0),
+            Some(BoundingBox::new(
+                Point3::new(3.0, -1.0, -1.0),
+                Point3::new(8.0, 1.0, 1.0),
+            )),
+        );
+    }
+
+    #[test]
+    fn empty_element_list_bounding_box() {
+        let list = ElementList::new();
+
+        assert_eq!(
+            list.bounding_box(0.0, 1.0),
+            None,
+        );
     }
 }
