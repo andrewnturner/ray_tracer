@@ -2,8 +2,10 @@ use std::any::Any;
 use std::fmt::Debug;
 use std::rc::Rc;
 
+use crate::geometry::bounding_box::BoundingBox;
 use crate::geometry::point::Point3;
 use crate::geometry::ray::Ray;
+use crate::geometry::vector::Vector3;
 
 use super::super::element::Element;
 use super::super::hit_record::HitRecord;
@@ -65,6 +67,13 @@ impl Element for Sphere {
             root,
             &ray,
             self.material.clone(),
+        ))
+    }
+
+    fn bounding_box(&self, _time_0: f32, _time_1: f32) -> Option<BoundingBox> {
+        Some(BoundingBox::new(
+            self.centre - Vector3::new(self.radius, self.radius, self.radius),
+            self.centre + Vector3::new(self.radius, self.radius, self.radius),
         ))
     }
 
@@ -187,6 +196,23 @@ mod tests {
                 Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
                 4.0,
                 false,
+            )),
+        );
+    }
+
+    #[test]
+    fn sphere_bounding_box() {
+        let s = Sphere::new(
+            Point3::new(1.0, 2.0, 3.0),
+            1.0,
+            Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+        );
+
+        assert_eq!(
+            s.bounding_box(1.0, 2.0),
+            Some(BoundingBox::new(
+                Point3::new(0.0, 1.0, 2.0),
+                Point3::new(2.0, 3.0, 4.0),
             )),
         );
     }
