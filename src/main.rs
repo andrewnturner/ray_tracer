@@ -151,7 +151,12 @@ fn ray_colour(ray: &Ray, world: &Box<dyn Element>, depth: isize) -> Colour {
     let unit = ray.direction.normalise();
     let t = 0.5 * (unit.y + 1.0);
 
-    (white * (1.0 - t)) + (blue * t)
+    let light_direction = Vector3::new(1.0, 1.0, 0.0);
+    if light_direction.dot(&ray.direction) > 0.0 {
+        (white * (1.0 - t)) + (blue * t)
+    } else {
+        Colour::new(0.1, 0.1, 0.1)
+    }
 }
 
 fn write_colour(file: &mut File, colour: &Colour, samples_per_pixel: isize) {
