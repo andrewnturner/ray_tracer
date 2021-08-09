@@ -166,12 +166,12 @@ mod tests {
         let sphere_1 = Rc::new(Sphere::new(
             Point3::new(1.0, 2.0, 3.0),
             1.0,
-            Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+            Rc::new(Lambertian::new_with_colour(Colour::new(0.1, 0.2, 0.3))),
         ));
         let sphere_2 = Rc::new(Sphere::new(
             Point3::new(1.0, 2.0, 3.0),
             1.0,
-            Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+            Rc::new(Lambertian::new_with_colour(Colour::new(0.1, 0.2, 0.3))),
         ));
         let bounding_box = BoundingBox::new(
             Point3::new(1.0, 2.0, 3.0),
@@ -184,12 +184,12 @@ mod tests {
                 left: Rc::new(Sphere::new(
                     Point3::new(1.0, 2.0, 3.0),
                     1.0,
-                    Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+                    Rc::new(Lambertian::new_with_colour(Colour::new(0.1, 0.2, 0.3))),
                 )),
                 right: Rc::new(Sphere::new(
                     Point3::new(1.0, 2.0, 3.0),
                     1.0,
-                    Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+                    Rc::new(Lambertian::new_with_colour(Colour::new(0.1, 0.2, 0.3))),
                 )),
                 bounding_box: bounding_box,
             },
@@ -201,12 +201,12 @@ mod tests {
         let sphere_1 = Rc::new(Sphere::new(
             Point3::new(4.0, 0.0, 0.0),
             1.0,
-            Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+            Rc::new(Lambertian::new_with_colour(Colour::new(0.1, 0.2, 0.3))),
         ));
         let sphere_2 = Rc::new(Sphere::new(
             Point3::new(7.0, 0.0, 0.0),
             1.0,
-            Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+            Rc::new(Lambertian::new_with_colour(Colour::new(0.1, 0.2, 0.3))),
         ));
         let bounding_box = BoundingBox::new(
             Point3::new(3.0, -1.0, -1.0),
@@ -226,8 +226,10 @@ mod tests {
             Some(HitRecord::new(
                 Point3::new(3.0, 0.0, 0.0),
                 Vector3::new(-1.0, 0.0, 0.0),
-                Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+                Rc::new(Lambertian::new_with_colour(Colour::new(0.1, 0.2, 0.3))),
                 3.0,
+                0.0,
+                0.5,
                 true
             )),
         );
@@ -238,12 +240,12 @@ mod tests {
         let sphere_1 = Rc::new(Sphere::new(
             Point3::new(7.0, 0.0, 0.0),
             1.0,
-            Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+            Rc::new(Lambertian::new_with_colour(Colour::new(0.1, 0.2, 0.3))),
         ));
         let sphere_2 = Rc::new(Sphere::new(
             Point3::new(4.0, 0.0, 0.0),
             1.0,
-            Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+            Rc::new(Lambertian::new_with_colour(Colour::new(0.1, 0.2, 0.3))),
         ));
         let bounding_box = BoundingBox::new(
             Point3::new(3.0, -1.0, -1.0),
@@ -263,8 +265,10 @@ mod tests {
             Some(HitRecord::new(
                 Point3::new(3.0, 0.0, 0.0),
                 Vector3::new(-1.0, 0.0, 0.0),
-                Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+                Rc::new(Lambertian::new_with_colour(Colour::new(0.1, 0.2, 0.3))),
                 3.0,
+                0.0, 
+                0.5,
                 true
             )),
         );
@@ -275,12 +279,12 @@ mod tests {
         let sphere_1 = Rc::new(Sphere::new(
             Point3::new(4.0, 0.0, 0.0),
             1.0,
-            Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+            Rc::new(Lambertian::new_with_colour(Colour::new(0.1, 0.2, 0.3))),
         ));
         let sphere_2 = Rc::new(Sphere::new(
             Point3::new(7.0, 0.0, 0.0),
             1.0,
-            Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+            Rc::new(Lambertian::new_with_colour(Colour::new(0.1, 0.2, 0.3))),
         ));
         let bounding_box = BoundingBox::new(
             Point3::new(3.0, -1.0, -1.0),
@@ -307,7 +311,7 @@ mod tests {
         elements.push(Rc::new(Sphere::new(
             Point3::new(4.0, 0.0, 0.0),
             1.0,
-            Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+            Rc::new(Lambertian::new_with_colour(Colour::new(0.1, 0.2, 0.3))),
         )));
 
         let bvh_node = BvhNode::from_elements(elements, 0.0, 1.0);
@@ -316,12 +320,12 @@ mod tests {
             Rc::new(Sphere::new(
                 Point3::new(4.0, 0.0, 0.0),
                 1.0,
-                Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+                Rc::new(Lambertian::new_with_colour(Colour::new(0.1, 0.2, 0.3))),
             )),
             Rc::new(Sphere::new(
                 Point3::new(4.0, 0.0, 0.0),
                 1.0,
-                Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+                Rc::new(Lambertian::new_with_colour(Colour::new(0.1, 0.2, 0.3))),
             )),
             BoundingBox::new(
                 Point3::new(3.0, -1.0, -1.0),

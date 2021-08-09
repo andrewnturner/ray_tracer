@@ -1,5 +1,7 @@
 use std::ops::{Add, Mul, Div};
 
+use super::point::Point3;
+
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub struct Vector3 {
     pub x: f32,
@@ -59,6 +61,14 @@ impl Vector3 {
             x: (self.y * other.z) - (self.z * other.y),
             y: (self.z * other.x) - (self.x * other.z),
             z: (self.x * other.y) - (self.y * other.x),
+        }
+    }
+
+    pub fn as_point3(self) -> Point3 {
+        Point3 {
+            x: self.x,
+            y: self.y,
+            z: self.z,
         }
     }
 }
@@ -160,6 +170,14 @@ mod tests {
         let w = Vector3 { x: 4.0, y: 5.0, z: 6.0 };
 
         assert_eq!(v.cross(&w), Vector3 { x: 27.0, y: -6.0, z: -13.0 });
+    }
+
+    #[test]
+    fn vector3_as_point3() {
+        assert_eq!(
+            Vector3::new(1.0, 2.0, 3.0).as_point3(),
+            Point3::new(1.0, 2.0, 3.0),
+        )
     }
 
     #[test]
