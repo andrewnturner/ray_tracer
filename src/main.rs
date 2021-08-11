@@ -24,6 +24,8 @@ use render::elements::sphere::Sphere;
 use render::materials::dielectric::Dielectric;
 use render::materials::lambertian::Lambertian;
 use render::materials::metal::Metal;
+use render::textures::checker::Checker;
+use render::textures::solid_colour::SolidColour;
 
 fn main() {
     let aspect_ratio = 16.0 / 9.0;
@@ -89,7 +91,14 @@ fn main() {
 
 fn create_world() -> Box<dyn Element> {
     let material_ground = Rc::new(Lambertian::new_with_colour(Colour::new(0.8, 0.8, 0.0)));
-    let material_centre = Rc::new(Lambertian::new_with_colour(Colour::new(0.1, 0.2, 0.5)));
+    let material_centre = Rc::new(
+        Lambertian::new(
+            Rc::new(Checker::new(
+                Rc::new(SolidColour::new(Colour::new(0.1, 0.1, 0.1))),
+                Rc::new(SolidColour::new(Colour::new(0.7, 0.7, 0.7))),
+            )),
+        ),
+    );
     let material_left = Rc::new(Dielectric::new(1.5));
     let material_right = Rc::new(Metal::new(Colour::new(0.8, 0.6, 0.2)));
 
