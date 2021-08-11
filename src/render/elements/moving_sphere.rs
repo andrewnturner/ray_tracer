@@ -7,6 +7,7 @@ use crate::geometry::point::Point3;
 use crate::geometry::ray::Ray;
 use crate::geometry::vector::Vector3;
 
+use super::sphere::sphere_uv;
 use super::super::element::Element;
 use super::super::hit_record::HitRecord;
 use super::super::material::Material;
@@ -80,10 +81,14 @@ impl Element for MovingSphere {
         let p = ray.at(root);
         let normal = (p - self.centre_at(ray.time)) / self.radius;
 
+        let (u, v) = sphere_uv(&normal.as_point3());
+
         Some(HitRecord::new_from_incident_ray(
             p,
             normal,
             root,
+            u,
+            v,
             &ray,
             self.material.clone(),
         ))
@@ -139,7 +144,7 @@ mod tests {
                 0.0,
                 1.0,
                 5.0,
-                Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+                Rc::new(Lambertian::new_with_colour(Colour::new(0.1, 0.2, 0.3))),
             ),
             MovingSphere {
                 centre_0: Point3 { x: 1.0, y: 2.0, z: 3.0 },
@@ -147,7 +152,7 @@ mod tests {
                 time_0: 0.0,
                 time_1: 1.0,
                 radius: 5.0,
-                material: Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+                material: Rc::new(Lambertian::new_with_colour(Colour::new(0.1, 0.2, 0.3))),
             },
         )
     }
@@ -161,7 +166,7 @@ mod tests {
             0.0,
             1.0,
             1.0,
-            Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+            Rc::new(Lambertian::new_with_colour(Colour::new(0.1, 0.2, 0.3))),
         );
 
         let record = sphere.hit(&ray, 0.0, f32::INFINITY);
@@ -171,8 +176,10 @@ mod tests {
             Some(HitRecord::new(
                 Point3::new(2.0, 0.0, 0.0),
                 Vector3::new(-1.0, 0.0, 0.0),
-                Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+                Rc::new(Lambertian::new_with_colour(Colour::new(0.1, 0.2, 0.3))),
                 2.0,
+                0.0,
+                0.5,
                 true,
             )),
         );
@@ -187,7 +194,7 @@ mod tests {
             0.0,
             1.0,
             1.0,
-            Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+            Rc::new(Lambertian::new_with_colour(Colour::new(0.1, 0.2, 0.3))),
         );
 
         let record = sphere.hit(&ray, 5.0, f32::INFINITY);
@@ -208,7 +215,7 @@ mod tests {
             0.0,
             1.0,
             1.0,
-            Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+            Rc::new(Lambertian::new_with_colour(Colour::new(0.1, 0.2, 0.3))),
         );
 
         let record = sphere.hit(&ray, 0.0, 1.0);
@@ -229,7 +236,7 @@ mod tests {
             0.0,
             1.0,
             1.0,
-            Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+            Rc::new(Lambertian::new_with_colour(Colour::new(0.1, 0.2, 0.3))),
         );
 
         let record = sphere.hit(&ray, 3.0, f32::INFINITY);
@@ -239,8 +246,10 @@ mod tests {
             Some(HitRecord::new(
                 Point3::new(4.0, 0.0, 0.0),
                 Vector3::new(-1.0, 0.0, 0.0),
-                Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+                Rc::new(Lambertian::new_with_colour(Colour::new(0.1, 0.2, 0.3))),
                 4.0,
+                0.5,
+                0.5,
                 false,
             )),
         );
@@ -254,7 +263,7 @@ mod tests {
             1.0,
             3.0,
             1.0,
-            Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+            Rc::new(Lambertian::new_with_colour(Colour::new(0.1, 0.2, 0.3))),
         );
 
         assert_eq!(

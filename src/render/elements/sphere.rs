@@ -1,4 +1,5 @@
 use std::any::Any;
+use std::f32::consts::PI;
 use std::fmt::Debug;
 use std::rc::Rc;
 
@@ -61,10 +62,14 @@ impl Element for Sphere {
         let p = ray.at(root);
         let normal = (p - self.centre) / self.radius;
 
+        let (u, v) = sphere_uv(&normal.as_point3());
+
         Some(HitRecord::new_from_incident_ray(
             p,
             normal,
             root,
+            u,
+            v,
             &ray,
             self.material.clone(),
         ))
@@ -94,6 +99,29 @@ impl PartialEq for Sphere {
     }
 }
 
+/// Let p = (x, y, z) be a point on the unit sphere at the origin.
+/// We compute the spherical cordinates (theta, phi), where theta is the angle upward
+/// from the bottom vertical axis, and phi is the angle around the vertical axis.
+/// We then map to (u, v) coordinates between 0 and 1.
+/// We have
+///     x = -cos(phi)sin(theta)
+///     y = -cos(theta)
+///     z = sin(phi)cos(theta),
+/// and so
+///     theta = cos^-1(-y)
+///     phi = tan^1(-z / x).
+/// Now theta is in [0, pi], and we add pi to theta so it is in [0, 2*pi].
+/// Then we can scale to (u, v) coordinates.
+pub fn sphere_uv(p: &Point3) -> (f32, f32) {
+    let theta = (-p.y).acos();
+    let phi = (-p.z).atan2(p.x) + PI;
+
+    let u = phi / (2.0 * PI);
+    let v = theta / PI;
+
+    (u, v)
+}
+
 #[cfg(test)]
 mod tests {
     use crate::geometry::vector::Vector3;
@@ -108,12 +136,12 @@ mod tests {
             Sphere::new(
                 Point3::new(1.0, 2.0, 3.0),
                 5.0,
-                Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+                Rc::new(Lambertian::new_with_colour(Colour::new(0.1, 0.2, 0.3))),
             ),
             Sphere {
                 centre: Point3 { x: 1.0, y: 2.0, z: 3.0 },
                 radius: 5.0,
-                material: Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+                material: Rc::new(Lambertian::new_with_colour(Colour::new(0.1, 0.2, 0.3))),
             },
         )
     }
@@ -124,7 +152,7 @@ mod tests {
         let sphere = Sphere::new(
             Point3::new(3.0, 0.0, 0.0),
             1.0,
-            Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+            Rc::new(Lambertian::new_with_colour(Colour::new(0.1, 0.2, 0.3))),
         );
 
         let record = sphere.hit(&ray, 0.0, f32::INFINITY);
@@ -134,8 +162,10 @@ mod tests {
             Some(HitRecord::new(
                 Point3::new(2.0, 0.0, 0.0),
                 Vector3::new(-1.0, 0.0, 0.0),
-                Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+                Rc::new(Lambertian::new_with_colour(Colour::new(0.1, 0.2, 0.3))),
                 2.0,
+                0.0,
+                0.5,
                 true,
             )),
         );
@@ -147,7 +177,7 @@ mod tests {
         let sphere = Sphere::new(
             Point3::new(3.0, 0.0, 0.0),
             1.0,
-            Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+            Rc::new(Lambertian::new_with_colour(Colour::new(0.1, 0.2, 0.3))),
         );
 
         let record = sphere.hit(&ray, 5.0, f32::INFINITY);
@@ -165,7 +195,7 @@ mod tests {
         let sphere = Sphere::new(
             Point3::new(3.0, 0.0, 0.0),
             1.0,
-            Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+            Rc::new(Lambertian::new_with_colour(Colour::new(0.1, 0.2, 0.3))),
         );
 
         let record = sphere.hit(&ray, 0.0, 1.0);
@@ -183,7 +213,7 @@ mod tests {
         let sphere = Sphere::new(
             Point3::new(3.0, 0.0, 0.0),
             1.0,
-            Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+            Rc::new(Lambertian::new_with_colour(Colour::new(0.1, 0.2, 0.3))),
         );
 
         let record = sphere.hit(&ray, 3.0, f32::INFINITY);
@@ -193,8 +223,10 @@ mod tests {
             Some(HitRecord::new(
                 Point3::new(4.0, 0.0, 0.0),
                 Vector3::new(-1.0, 0.0, 0.0),
-                Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+                Rc::new(Lambertian::new_with_colour(Colour::new(0.1, 0.2, 0.3))),
                 4.0,
+                0.5,
+                0.5,
                 false,
             )),
         );
@@ -205,7 +237,7 @@ mod tests {
         let s = Sphere::new(
             Point3::new(1.0, 2.0, 3.0),
             1.0,
-            Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+            Rc::new(Lambertian::new_with_colour(Colour::new(0.1, 0.2, 0.3))),
         );
 
         assert_eq!(
@@ -214,6 +246,36 @@ mod tests {
                 Point3::new(0.0, 1.0, 2.0),
                 Point3::new(2.0, 3.0, 4.0),
             )),
+        );
+    }
+
+    #[test]
+    fn sphere_uv_centre() {
+        let p = Point3::new(1.0, 0.0, 0.0);
+
+        assert_eq!(
+            sphere_uv(&p),
+            (0.5, 0.5)
+        );
+    }
+
+    #[test]
+    fn sphere_uv_bottom() {
+        let p = Point3::new(0.0, -1.0, 0.0);
+
+        assert_eq!(
+            sphere_uv(&p),
+            (0.5, 0.0)
+        );
+    }
+
+    #[test]
+    fn sphere_uv_left() {
+        let p = Point3::new(-1.0, 0.0, 0.0);
+
+        assert_eq!(
+            sphere_uv(&p),
+            (0.0, 0.5)
         );
     }
 }

@@ -14,21 +14,41 @@ pub struct HitRecord {
     pub normal: Vector3,
     pub material: Rc<dyn Material>,
     pub t: f32,
+    pub u: f32,
+    pub v: f32,
     pub front_face: bool,
 }
 
 impl HitRecord {
-    pub fn new(point: Point3, normal: Vector3, material: Rc<dyn Material>, t: f32, front_face: bool) -> Self {
+    pub fn new(
+        point: Point3,
+        normal: Vector3,
+        material: Rc<dyn Material>,
+        t: f32,
+        u: f32,
+        v: f32,
+        front_face: bool,
+    ) -> Self {
         HitRecord {
             point: point,
             normal: normal,
             material: material,
             t: t,
+            u: u,
+            v: v,
             front_face: front_face,
         }
     }
 
-    pub fn new_from_incident_ray(point: Point3, outward_normal: Vector3, t: f32, ray: &Ray, material: Rc<dyn Material>) -> Self {
+    pub fn new_from_incident_ray(
+        point: Point3,
+        outward_normal: Vector3,
+        t: f32,
+        u: f32,
+        v: f32,
+        ray: &Ray,
+        material: Rc<dyn Material>,
+    ) -> Self {
         let front_face = ray.direction.dot(&outward_normal) < 0.0;
         let normal = if front_face { outward_normal } else { outward_normal * -1.0 };
 
@@ -37,6 +57,8 @@ impl HitRecord {
             normal: normal,
             material: material,
             t: t,
+            u: u,
+            v: v,
             front_face: front_face,
         }
     }
@@ -48,6 +70,8 @@ impl PartialEq for HitRecord {
         (self.normal == other.normal) &&
         (*self.material == *other.material) &&
         (self.t == other.t) &&
+        (self.u == other.u) &&
+        (self.v == other.v) &&
         (self.front_face == other.front_face)
     }
 }
@@ -65,15 +89,19 @@ mod tests {
             HitRecord::new(
                 Point3::new(1.0, 2.0, 3.0),
                 Vector3::new(4.0, 5.0, 6.0),
-                Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+                Rc::new(Lambertian::new_with_colour(Colour::new(0.1, 0.2, 0.3))),
                 7.0,
+                0.1,
+                0.2,
                 true,
             ),
             HitRecord {
                 point: Point3::new(1.0, 2.0, 3.0),
                 normal: Vector3::new(4.0, 5.0, 6.0),
-                material: Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+                material: Rc::new(Lambertian::new_with_colour(Colour::new(0.1, 0.2, 0.3))),
                 t: 7.0,
+                u: 0.1,
+                v: 0.2,
                 front_face: true,
             },
         )
@@ -86,17 +114,21 @@ mod tests {
                 Point3::new(1.0, 2.0, 3.0),
                 Vector3::new(4.0, 5.0, 6.0),
                 7.0,
+                0.1,
+                0.2,
                 &Ray::new(
                     Point3::zero(),
                     Vector3::new(1.0, 0.0, 0.0),
                 ),
-                Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+                Rc::new(Lambertian::new_with_colour(Colour::new(0.1, 0.2, 0.3))),
             ),
             HitRecord {
                 point: Point3::new(1.0, 2.0, 3.0),
                 normal: Vector3::new(-4.0, -5.0, -6.0),
-                material: Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+                material: Rc::new(Lambertian::new_with_colour(Colour::new(0.1, 0.2, 0.3))),
                 t: 7.0,
+                u: 0.1,
+                v: 0.2,
                 front_face: false,
             },
         )
@@ -109,19 +141,23 @@ mod tests {
                 Point3::new(1.0, 2.0, 3.0),
                 Vector3::new(4.0, 5.0, 6.0),
                 7.0,
+                0.1,
+                0.2,
                 &Ray::new(
                     Point3::zero(),
                     Vector3::new(-1.0, 0.0, 0.0),
                 ),
-                Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+                Rc::new(Lambertian::new_with_colour(Colour::new(0.1, 0.2, 0.3))),
             ),
             HitRecord {
                 point: Point3::new(1.0, 2.0, 3.0),
                 normal: Vector3::new(4.0, 5.0, 6.0),
-                material: Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+                material: Rc::new(Lambertian::new_with_colour(Colour::new(0.1, 0.2, 0.3))),
                 t: 7.0,
+                u: 0.1,
+                v: 0.2,
                 front_face: true,
             },
-        )
+        );
     }
 }

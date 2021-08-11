@@ -1,4 +1,5 @@
 use std::any::Any;
+use std::rc::Rc;
 
 use crate::geometry::ray::Ray;
 use crate::graphics::colour::Colour;
@@ -6,17 +7,25 @@ use crate::util::random::random_in_unit_sphere;
 
 use super::super::hit_record::HitRecord;
 use super::super::material::Material;
+use super::super::texture::Texture;
+use super::super::textures::solid_colour::SolidColour;
 
 // Not a true Lambertian.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, Clone)]
 pub struct Lambertian {
-    pub albedo: Colour,
+    pub albedo: Rc<dyn Texture>,
 }
 
 impl Lambertian {
-    pub fn new(albedo: Colour) -> Self {
+    pub fn new(albedo: Rc<dyn Texture>) -> Self {
         Lambertian {
             albedo: albedo,
+        }
+    }
+
+    pub fn new_with_colour(albedo: Colour) -> Self {
+        Lambertian {
+            albedo: Rc::new(SolidColour::new(albedo)),
         }
     }
 }
@@ -30,7 +39,7 @@ impl Material for Lambertian {
         }
 
         Some((
-            self.albedo,
+            self.albedo.value(hit_record.u, hit_record.v, &hit_record.point),
             Ray::new_at_time(hit_record.point, scatter_direction, ray.time),
         ))
     }
@@ -44,16 +53,22 @@ impl Material for Lambertian {
     }
 }
 
+impl PartialEq for Lambertian {
+    fn eq(&self, other: &Self) -> bool {
+        *self.albedo == *other.albedo
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn new_lambertian() {
+    fn new_lambertian_with_colour() {
         assert_eq!(
-            Lambertian::new(Colour::new(0.1, 0.2, 0.3)),
+            Lambertian::new_with_colour(Colour::new(0.1, 0.2, 0.3)),
             Lambertian {
-                albedo: Colour::new(0.1, 0.2, 0.3),
+                albedo: Rc::new(SolidColour::new(Colour::new(0.1, 0.2, 0.3))),
             },
         );
     }

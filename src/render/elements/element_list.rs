@@ -93,7 +93,7 @@ mod tests {
         list.add(Box::new(Sphere::new(
             Point3::new(1.0, 2.0, 3.0),
             5.0,
-            Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+            Rc::new(Lambertian::new_with_colour(Colour::new(0.1, 0.2, 0.3))),
         )));
 
         let mut expected_elements: Vec<Box<dyn Element>> = Vec::new();
@@ -101,7 +101,7 @@ mod tests {
             Box::new(Sphere::new(
                 Point3::new(1.0, 2.0, 3.0),
                 5.0,
-                Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+                Rc::new(Lambertian::new_with_colour(Colour::new(0.1, 0.2, 0.3))),
             )) as Box<dyn Element>
         );
         let expected = ElementList {
@@ -120,12 +120,12 @@ mod tests {
         list.add(Box::new(Sphere::new(
             Point3::new(4.0, 0.0, 0.0),
             1.0,
-            Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+            Rc::new(Lambertian::new_with_colour(Colour::new(0.1, 0.2, 0.3))),
         )));
         list.add(Box::new(Sphere::new(
             Point3::new(7.0, 0.0, 0.0),
             1.0,
-            Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+            Rc::new(Lambertian::new_with_colour(Colour::new(0.1, 0.2, 0.3))),
         )));
 
         let ray = Ray::new(Point3::zero(), Vector3::new(1.0, 0.0, 0.0));
@@ -137,8 +137,10 @@ mod tests {
             Some(HitRecord::new(
                 Point3::new(3.0, 0.0, 0.0),
                 Vector3::new(-1.0, 0.0, 0.0),
-                Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+                Rc::new(Lambertian::new_with_colour(Colour::new(0.1, 0.2, 0.3))),
                 3.0,
+                0.0,
+                0.5,
                 true
             )),
         )
@@ -150,12 +152,12 @@ mod tests {
         list.add(Box::new(Sphere::new(
             Point3::new(7.0, 0.0, 0.0),
             1.0,
-            Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+            Rc::new(Lambertian::new_with_colour(Colour::new(0.1, 0.2, 0.3))),
         )));
         list.add(Box::new(Sphere::new(
             Point3::new(4.0, 0.0, 0.0),
             1.0,
-            Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+            Rc::new(Lambertian::new_with_colour(Colour::new(0.1, 0.2, 0.3))),
         )));
 
         let ray = Ray::new(Point3::zero(), Vector3::new(1.0, 0.0, 0.0));
@@ -167,8 +169,10 @@ mod tests {
             Some(HitRecord::new(
                 Point3::new(3.0, 0.0, 0.0),
                 Vector3::new(-1.0, 0.0, 0.0),
-                Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+                Rc::new(Lambertian::new_with_colour(Colour::new(0.1, 0.2, 0.3))),
                 3.0,
+                0.0,
+                0.5,
                 true
             )),
         )
@@ -180,12 +184,12 @@ mod tests {
         list.add(Box::new(Sphere::new(
             Point3::new(7.0, 0.0, 0.0),
             1.0,
-            Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+            Rc::new(Lambertian::new_with_colour(Colour::new(0.1, 0.2, 0.3))),
         )));
         list.add(Box::new(Sphere::new(
             Point3::new(4.0, 0.0, 0.0),
             1.0,
-            Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.3))),
+            Rc::new(Lambertian::new_with_colour(Colour::new(0.1, 0.2, 0.3))),
         )));
 
         assert_eq!(
