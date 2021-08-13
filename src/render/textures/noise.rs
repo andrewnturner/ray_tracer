@@ -9,19 +9,21 @@ use super::super::texture::Texture;
 #[derive(PartialEq, Debug)]
 pub struct Noise {
     perlin: Perlin,
+    scale: f32
 }
 
 impl Noise {
-    pub fn new(perlin: Perlin) -> Self {
+    pub fn new(perlin: Perlin, scale: f32) -> Self {
         Noise {
             perlin: perlin,
+            scale: scale,
         }
     }
 }
 
 impl Texture for Noise {
     fn value(&self, _u: f32, _v: f32, p: &Point3) -> Colour {
-        Colour::new(1.0, 1.0, 1.0) * self.perlin.noise(p)
+        Colour::new(1.0, 1.0, 1.0) * 0.5 * (1.0 + self.perlin.noise(&(*p * self.scale)))
     }
 
     fn eq(&self, other: &dyn Texture) -> bool {
@@ -39,12 +41,12 @@ mod tests {
 
     #[test]
     fn new_noise() {
-        let _noise = Noise::new(Perlin::new());
+        let _noise = Noise::new(Perlin::new(), 1.0);
     }
 
     #[test]
     fn noise_value() {
-        let noise = Noise::new(Perlin::new());
+        let noise = Noise::new(Perlin::new(), 1.0);
         let c = noise.value(0.5, 0.5, &Point3::new(1.0, 2.0, 3.0));
 
         assert!((0.0 <= c.r) && (c.b <= 1.0));

@@ -161,7 +161,7 @@ fn create_world0() -> Box<dyn Element> {
 fn create_world1() -> Box<dyn Element> {
     let material_noise = Rc::new(
         Lambertian::new(
-            Rc::new(Noise::new(Perlin::new()))
+            Rc::new(Noise::new(Perlin::new(), 4.0))
         )
     );
 

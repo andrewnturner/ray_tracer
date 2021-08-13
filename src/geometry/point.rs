@@ -1,4 +1,4 @@
-use std::ops::{Add, Sub};
+use std::ops::{Add, Sub, Mul};
 
 use super::vector::Vector3;
 
@@ -59,6 +59,14 @@ impl Sub<Vector3> for Point3 {
     }
 }
 
+impl Mul<f32> for Point3 {
+    type Output = Self;
+
+    fn mul(self, scalar: f32) -> Self {
+        Self { x: self.x * scalar, y: self.y * scalar, z: self.z * scalar }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -109,5 +117,13 @@ mod tests {
             Point3::new(3.0, 5.0, 7.0) - Vector3::new(1.0, 2.0, 3.0),
             Point3::new(2.0, 3.0, 4.0),
         );
+    }
+
+    #[test]
+    fn test_multiply_scalar() {
+        assert_eq!(
+            Point3::new(1.0, 2.0, 3.0) * 2.0,
+            Point3::new(2.0, 4.0, 6.0),
+        )
     }
 }
