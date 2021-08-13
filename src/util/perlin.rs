@@ -34,6 +34,10 @@ impl Perlin {
         let (j, v) = integer_and_fractional(p.y);
         let (k, w) = integer_and_fractional(p.z);
 
+        let u_smooth = u * u * (3.0 - (2.0 * u));
+        let v_smooth = v * v * (3.0 - (2.0 * v));
+        let w_smooth = w * w * (3.0 - (2.0 * w));
+
         let mut c = [[[0.0; 2]; 2]; 2];
         for di in 0..2 {
             for dj in 0..2 {
@@ -48,7 +52,7 @@ impl Perlin {
             }
         }
 
-        trilinear_interpolate(c, u, v, w)
+        trilinear_interpolate(c, u_smooth, v_smooth, w_smooth)
     }
 
     fn make_permutation() -> [usize; POINT_COUNT] {
