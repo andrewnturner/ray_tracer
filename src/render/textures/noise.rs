@@ -23,7 +23,7 @@ impl Noise {
 
 impl Texture for Noise {
     fn value(&self, _u: f32, _v: f32, p: &Point3) -> Colour {
-        Colour::new(1.0, 1.0, 1.0) * 0.5 * (1.0 + self.perlin.noise(&(*p * self.scale)))
+        Colour::new(1.0, 1.0, 1.0) * self.perlin.turbulence(&(*p * self.scale), 7)
     }
 
     fn eq(&self, other: &dyn Texture) -> bool {

@@ -58,6 +58,19 @@ impl Perlin {
         perlin_interpolate(c, u, v, w)
     }
 
+    pub fn turbulence(&self, p: &Point3, depth: usize) -> f32 {
+        let mut acc = 0.0;
+        let mut weighted_p = *p;
+        let mut weight = 1.0;
+        for i in 0..depth {
+            acc += weight * self.noise(&weighted_p);
+            weight *= 0.5;
+            weighted_p = weighted_p * 2.0;
+        }
+
+        return acc.abs()
+    }
+
     fn make_permutation() -> [usize; POINT_COUNT] {
         let mut rng = thread_rng();
         
