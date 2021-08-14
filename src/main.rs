@@ -24,6 +24,7 @@ use render::materials::dielectric::Dielectric;
 use render::materials::lambertian::Lambertian;
 use render::materials::metal::Metal;
 use render::textures::checker::Checker;
+use render::textures::marble::Marble;
 use render::textures::noise::Noise;
 use render::textures::solid_colour::SolidColour;
 use util::perlin::Perlin;
@@ -164,6 +165,11 @@ fn create_world1() -> Box<dyn Element> {
             Rc::new(Noise::new(Perlin::new(), 4.0))
         )
     );
+    let material_marble = Rc::new(
+        Lambertian::new(
+            Rc::new(Marble::new(Perlin::new(), 4.0))
+        )
+    );
 
     let mut elements: Vec<Rc<dyn Element>> = Vec::new();
 
@@ -171,7 +177,7 @@ fn create_world1() -> Box<dyn Element> {
         Sphere::new(
             Point3::new(0.0, -1000.0, 0.0),
             1000.0,
-            material_noise.clone(),
+            material_marble.clone(),
         )
     ));
     elements.push(Rc::new(

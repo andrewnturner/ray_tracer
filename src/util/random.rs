@@ -3,8 +3,6 @@ use rand::{Rng, thread_rng};
 use crate::geometry::vector::Vector3;
 
 pub fn random_in_unit_sphere() -> Vector3 {
-    let mut rng = thread_rng();
-
     loop {
         let p = random_in_unit_cube();
         if p.length_squared() < 1.0 {

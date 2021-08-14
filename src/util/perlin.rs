@@ -18,10 +18,8 @@ pub struct Perlin {
 
 impl Perlin {
     pub fn new() -> Self {
-        let mut rng = thread_rng();
-
         let mut random_vectors = ArrayVec::<Vector3, POINT_COUNT>::new();
-        for i in 0..POINT_COUNT {
+        for _i in 0..POINT_COUNT {
             random_vectors.push(random_in_unit_cube());
         }
 
@@ -62,7 +60,7 @@ impl Perlin {
         let mut acc = 0.0;
         let mut weighted_p = *p;
         let mut weight = 1.0;
-        for i in 0..depth {
+        for _i in 0..depth {
             acc += weight * self.noise(&weighted_p);
             weight *= 0.5;
             weighted_p = weighted_p * 2.0;
