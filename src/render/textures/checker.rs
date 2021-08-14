@@ -23,9 +23,8 @@ impl Checker {
 
 impl Texture for Checker {
     fn value(&self, u: f32, v: f32, p: &Point3) -> Colour {
-        let sines = (p.x * 20.0).sin() * (p.y * 20.0).sin() * (p.z * 20.0).sin();
-        let sines2 = (u * 50.0).sin() * (v * 50.0).sin();
-        if sines2 < 0.0 {
+        let sines = (u * 50.0).sin() * (v * 50.0).sin();
+        if sines < 0.0 {
             self.odd.value(u, v, p)
         } else {
             self.even.value(u, v, p)

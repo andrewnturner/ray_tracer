@@ -18,39 +18,57 @@ use graphics::colour::Colour;
 use render::camera::Camera;
 use render::element::Element;
 use render::elements::bvh_node::BvhNode;
-use render::elements::element_list::ElementList;
 use render::elements::moving_sphere::MovingSphere;
 use render::elements::sphere::Sphere;
 use render::materials::dielectric::Dielectric;
 use render::materials::lambertian::Lambertian;
 use render::materials::metal::Metal;
 use render::textures::checker::Checker;
+use render::textures::marble::Marble;
+use render::textures::noise::Noise;
 use render::textures::solid_colour::SolidColour;
+use util::perlin::Perlin;
 
 fn main() {
     let aspect_ratio = 16.0 / 9.0;
     let image_width = 400;
     let image_height = (image_width as f32 / aspect_ratio) as isize;
 
-    let samples_per_pixel = 50;
-    let max_depth = 30;
+    let samples_per_pixel = 20;
+    let max_depth = 20;
 
-    let look_at = Point3::new(-2.0, 2.0, 1.0);
-    let look_from = Point3::new(0.0, 0.0, -1.0);
+    let world_choice = 1;
+    let (world, look_at, look_from, vfov) = match world_choice {
+        0 => {
+            let world = create_world0();
+            let look_at = Point3::new(-2.0, 2.0, 1.0);
+            let look_from = Point3::new(0.0, 0.0, -1.0);
+            let vfov = 45.0;
+
+            (world, look_at, look_from, vfov)
+        },
+        1 => {
+            let world = create_world1();
+            let look_at = Point3::new(0.0, 0.0, 0.0);
+            let look_from = Point3::new(13.0, 2.0, 3.0);
+            let vfov = 20.0;
+
+            (world, look_at, look_from, vfov)
+        },
+        _ => panic!("Invalid world choice"),
+    };    
 
     let camera = Camera::new(
-        look_at,
         look_from,
+        look_at,
         Vector3::new(0.0, 1.0, 0.0),
-        45.0,
+        vfov,
         aspect_ratio,
         0.1,
         (look_at - look_from).length(),
         0.0,
         1.0,
     );
-
-    let world = create_world();
 
     let path = Path::new("render.ppm");
     let display = path.display();
@@ -89,7 +107,7 @@ fn main() {
     }
 }
 
-fn create_world() -> Box<dyn Element> {
+fn create_world0() -> Box<dyn Element> {
     let material_ground = Rc::new(Lambertian::new_with_colour(Colour::new(0.8, 0.8, 0.0)));
     let material_centre = Rc::new(
         Lambertian::new(
@@ -101,7 +119,7 @@ fn create_world() -> Box<dyn Element> {
     );
     let material_left = Rc::new(Dielectric::new(1.5));
     let material_right = Rc::new(Metal::new(Colour::new(0.8, 0.6, 0.2)));
-
+    
     let mut elements: Vec<Rc<dyn Element>> = Vec::new();
 
     elements.push(Rc::new(
@@ -133,6 +151,40 @@ fn create_world() -> Box<dyn Element> {
             Point3::new(1.0, 0.0, -1.0),
             0.5,
             material_right.clone(),
+        )
+    ));    
+
+    let world = BvhNode::from_elements(elements, 0.0, 1.0);
+
+    Box::new(world)
+}
+
+fn create_world1() -> Box<dyn Element> {
+    let material_noise = Rc::new(
+        Lambertian::new(
+            Rc::new(Noise::new(Perlin::new(), 4.0))
+        )
+    );
+    let material_marble = Rc::new(
+        Lambertian::new(
+            Rc::new(Marble::new(Perlin::new(), 4.0))
+        )
+    );
+
+    let mut elements: Vec<Rc<dyn Element>> = Vec::new();
+
+    elements.push(Rc::new(
+        Sphere::new(
+            Point3::new(0.0, -1000.0, 0.0),
+            1000.0,
+            material_marble.clone(),
+        )
+    ));
+    elements.push(Rc::new(
+        Sphere::new(
+            Point3::new(0.0, 2.0, 0.0),
+            2.0,
+            material_noise.clone(),
         )
     ));
 
