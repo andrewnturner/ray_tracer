@@ -22,6 +22,7 @@ use render::elements::element_list::ElementList;
 use render::elements::moving_sphere::MovingSphere;
 use render::elements::sphere::Sphere;
 use render::materials::dielectric::Dielectric;
+use render::materials::diffuse_light::DiffuseLight;
 use render::materials::lambertian::Lambertian;
 use render::materials::metal::Metal;
 use render::textures::checker::Checker;
@@ -36,34 +37,46 @@ fn main() {
     let image_width = 400;
     let image_height = (image_width as f32 / aspect_ratio) as isize;
 
-    let samples_per_pixel = 30;
+    let samples_per_pixel = 300;
     let max_depth = 30;
 
-    let world_choice = 2;
-    let (world, look_at, look_from, vfov) = match world_choice {
+    let world_choice = 3;
+    let (world, look_at, look_from, vfov, background) = match world_choice {
         0 => {
             let world = create_world0();
             let look_at = Point3::new(0.0, 0.0, -1.0);
             let look_from = Point3::new(-2.0, 2.0, 1.0);
             let vfov = 45.0;
+            let background = Colour::new(0.7, 0.8, 1.0);
 
-            (world, look_at, look_from, vfov)
+            (world, look_at, look_from, vfov, background)
         },
         1 => {
             let world = create_world1();
             let look_at = Point3::new(0.0, 0.0, 0.0);
             let look_from = Point3::new(13.0, 2.0, 3.0);
             let vfov = 20.0;
+            let background = Colour::new(0.7, 0.8, 1.0);
 
-            (world, look_at, look_from, vfov)
+            (world, look_at, look_from, vfov, background)
         },
         2 => {
             let world = create_world2();
             let look_at = Point3::new(0.0, 0.0, 0.0);
             let look_from = Point3::new(13.0, 2.0, 3.0);
             let vfov = 20.0;
+            let background = Colour::new(0.7, 0.8, 1.0);
 
-            (world, look_at, look_from, vfov)
+            (world, look_at, look_from, vfov, background)
+        },
+        3 => {
+            let world = create_world3();
+            let look_at = Point3::new(0.0, 2.0, 0.0);
+            let look_from = Point3::new(26.0, 3.0, 6.0);
+            let vfov = 20.0;
+            let background = Colour::new(0.0, 0.0, 0.0);
+
+            (world, look_at, look_from, vfov, background)
         }
         _ => panic!("Invalid world choice"),
     };    
@@ -110,7 +123,7 @@ fn main() {
 
                 let ray = camera.get_ray(u, v);
 
-                pixel_colour += ray_colour(&ray, &world, max_depth);
+                pixel_colour += ray_colour(&ray, &background, &world, max_depth);
             }
             
             write_colour(&mut file, &pixel_colour, samples_per_pixel);
@@ -222,26 +235,62 @@ fn create_world2() -> Box<dyn Element> {
     Box::new(world)
 }
 
-fn ray_colour(ray: &Ray, world: &Box<dyn Element>, depth: isize) -> Colour {
-    let white = Colour::new(1.0, 1.0, 1.0);
-    let blue = Colour::new(0.5, 0.7, 1.0);
+fn create_world3() -> Box<dyn Element> {
+    let material_earth = Rc::new(Lambertian::new(
+        Rc::new(ImageTexture::new_from_filename("earth.jpg"))
+    ));
+    let material_ground = Rc::new(Lambertian::new(
+        Rc::new(SolidColour::new(Colour::new(1.0, 0.0, 0.0)))
+    ));
+    let material_light = Rc::new(DiffuseLight::new(
+        Rc::new(SolidColour::new(Colour::new(4.0, 4.0, 4.0)))
+    ));
 
+    let mut world = ElementList::new();
+
+    world.add(
+        Box::new(Sphere::new(
+            Point3::new(0.0, 2.0, 0.0),
+            2.0,
+            material_earth,
+        )),
+    );
+    world.add(
+        Box::new(Sphere::new(
+            Point3::new(0.0, -1000.0, 0.0),
+            1000.0,
+            material_ground,
+        ))
+    );
+
+    world.add(
+        Box::new(Sphere::new(
+            Point3::new(5.0, 5.0, 5.0),
+            1.0,
+            material_light,
+        ))
+    );
+
+    Box::new(world)
+}
+
+fn ray_colour(ray: &Ray, background: &Colour, world: &Box<dyn Element>, depth: isize) -> Colour {
     if depth <= 0 {
         return Colour::new(0.0, 0.0, 0.0);
     }
     
-    if let Some(hit_record) = world.hit(&ray, 0.001, f32::INFINITY) {
-        if let Some((attenuation, scattered)) = hit_record.material.scatter(&ray, &hit_record) {
-            return ray_colour(&scattered, world, depth - 1) * attenuation;
-        }
-        
-        return Colour::new(0.0, 0.0, 0.0);
+    match world.hit(&ray, 0.001, f32::INFINITY) {
+        Some(hit_record) => {
+            let emitted = hit_record.material.emit(hit_record.u, hit_record.v, &hit_record.point);
+            match hit_record.material.scatter(&ray, &hit_record) {
+                Some((attenuation, scattered)) => {
+                    emitted + (ray_colour(&scattered, background, world, depth - 1) * attenuation)
+                },
+                None => emitted,
+            }
+        },
+        None => *background,
     }
-    
-    let unit = ray.direction.normalise();
-    let t = 0.5 * (unit.y + 1.0);
-
-    (white * (1.0 - t)) + (blue * t)
 }
 
 fn write_colour(file: &mut File, colour: &Colour, samples_per_pixel: isize) {
