@@ -1,12 +1,12 @@
 mod geometry;
 mod graphics;
 mod render;
+mod scenes;
 mod util;
 
 use std::fs::File;
 use std::io::Write;
 use std::path::Path;
-use std::rc::Rc;
 
 use num::clamp;
 use rand::{Rng, thread_rng};
@@ -17,33 +17,20 @@ use geometry::vector::Vector3;
 use graphics::colour::Colour;
 use render::camera::Camera;
 use render::element::Element;
-use render::elements::bvh_node::BvhNode;
-use render::elements::element_list::ElementList;
-use render::elements::moving_sphere::MovingSphere;
-use render::elements::sphere::Sphere;
-use render::materials::dielectric::Dielectric;
-use render::materials::diffuse_light::DiffuseLight;
-use render::materials::lambertian::Lambertian;
-use render::materials::metal::Metal;
-use render::textures::checker::Checker;
-use render::textures::image_texture::ImageTexture;
-use render::textures::marble::Marble;
-use render::textures::noise::Noise;
-use render::textures::solid_colour::SolidColour;
-use util::perlin::Perlin;
+use scenes::{create_basic_spheres, create_noise_spheres, create_globe, create_lit_globe};
 
 fn main() {
     let aspect_ratio = 16.0 / 9.0;
     let image_width = 400;
     let image_height = (image_width as f32 / aspect_ratio) as isize;
 
-    let samples_per_pixel = 300;
+    let samples_per_pixel = 40;
     let max_depth = 30;
 
-    let world_choice = 3;
+    let world_choice = 0;
     let (world, look_at, look_from, vfov, background) = match world_choice {
         0 => {
-            let world = create_world0();
+            let world = create_basic_spheres();
             let look_at = Point3::new(0.0, 0.0, -1.0);
             let look_from = Point3::new(-2.0, 2.0, 1.0);
             let vfov = 45.0;
@@ -52,7 +39,7 @@ fn main() {
             (world, look_at, look_from, vfov, background)
         },
         1 => {
-            let world = create_world1();
+            let world = create_noise_spheres();
             let look_at = Point3::new(0.0, 0.0, 0.0);
             let look_from = Point3::new(13.0, 2.0, 3.0);
             let vfov = 20.0;
@@ -61,7 +48,7 @@ fn main() {
             (world, look_at, look_from, vfov, background)
         },
         2 => {
-            let world = create_world2();
+            let world = create_globe();
             let look_at = Point3::new(0.0, 0.0, 0.0);
             let look_from = Point3::new(13.0, 2.0, 3.0);
             let vfov = 20.0;
@@ -70,7 +57,7 @@ fn main() {
             (world, look_at, look_from, vfov, background)
         },
         3 => {
-            let world = create_world3();
+            let world = create_lit_globe();
             let look_at = Point3::new(0.0, 2.0, 0.0);
             let look_from = Point3::new(26.0, 3.0, 6.0);
             let vfov = 20.0;
@@ -129,149 +116,6 @@ fn main() {
             write_colour(&mut file, &pixel_colour, samples_per_pixel);
         }
     }
-}
-
-fn create_world0() -> Box<dyn Element> {
-    let material_ground = Rc::new(Lambertian::new_with_colour(Colour::new(0.8, 0.8, 0.0)));
-    let material_centre = Rc::new(
-        Lambertian::new(
-            Rc::new(Checker::new(
-                Rc::new(SolidColour::new(Colour::new(0.1, 0.1, 0.1))),
-                Rc::new(SolidColour::new(Colour::new(0.7, 0.7, 0.7))),
-            )),
-        ),
-    );
-    let material_left = Rc::new(Dielectric::new(1.5));
-    let material_right = Rc::new(Metal::new(Colour::new(0.8, 0.6, 0.2)));
-    
-    let mut elements: Vec<Rc<dyn Element>> = Vec::new();
-
-    elements.push(Rc::new(
-        Sphere::new(
-            Point3::new(0.0, -100.5, -1.0),
-            100.0,
-            material_ground.clone(),
-        )
-    ));
-    elements.push(Rc::new(
-        MovingSphere::new(
-            Point3::new(0.0, 0.0, -1.0),
-            Point3::new(0.0, 0.0, -1.0),
-            0.0,
-            1.0,
-            0.5,
-            material_centre.clone(),
-        )
-    ));
-    elements.push(Rc::new(
-        Sphere::new(
-            Point3::new(-1.0, 0.0, -1.0),
-            0.5,
-            material_left.clone(),
-        )
-    ));
-    elements.push(Rc::new(
-        Sphere::new(
-            Point3::new(1.0, 0.0, -1.0),
-            0.5,
-            material_right.clone(),
-        )
-    ));    
-
-    let world = BvhNode::from_elements(elements, 0.0, 1.0);
-
-    Box::new(world)
-}
-
-fn create_world1() -> Box<dyn Element> {
-    let material_noise = Rc::new(
-        Lambertian::new(
-            Rc::new(Noise::new(Perlin::new(), 4.0))
-        )
-    );
-    let material_marble = Rc::new(
-        Lambertian::new(
-            Rc::new(Marble::new(Perlin::new(), 4.0))
-        )
-    );
-
-    let mut elements: Vec<Rc<dyn Element>> = Vec::new();
-
-    elements.push(Rc::new(
-        Sphere::new(
-            Point3::new(0.0, -1000.0, 0.0),
-            1000.0,
-            material_marble.clone(),
-        )
-    ));
-    elements.push(Rc::new(
-        Sphere::new(
-            Point3::new(0.0, 2.0, 0.0),
-            2.0,
-            material_noise.clone(),
-        )
-    ));
-
-    let world = BvhNode::from_elements(elements, 0.0, 1.0);
-
-    Box::new(world)
-}
-
-fn create_world2() -> Box<dyn Element> {
-    let material_earth = Rc::new(Lambertian::new(
-        Rc::new(ImageTexture::new_from_filename("earth.jpg"))
-    ));
-
-    let mut world = ElementList::new();
-
-    world.add(
-        Box::new(Sphere::new(
-            Point3::new(0.0, 0.0, 0.0),
-            2.0,
-            material_earth,
-        )),
-    );
-
-    Box::new(world)
-}
-
-fn create_world3() -> Box<dyn Element> {
-    let material_earth = Rc::new(Lambertian::new(
-        Rc::new(ImageTexture::new_from_filename("earth.jpg"))
-    ));
-    let material_ground = Rc::new(Lambertian::new(
-        Rc::new(SolidColour::new(Colour::new(1.0, 0.0, 0.0)))
-    ));
-    let material_light = Rc::new(DiffuseLight::new(
-        Rc::new(SolidColour::new(Colour::new(4.0, 4.0, 4.0)))
-    ));
-
-    let mut world = ElementList::new();
-
-    world.add(
-        Box::new(Sphere::new(
-            Point3::new(0.0, 2.0, 0.0),
-            2.0,
-            material_earth,
-        )),
-    );
-    world.add(
-        Box::new(Sphere::new(
-            Point3::new(0.0, -1000.0, 0.0),
-            1000.0,
-            material_ground,
-        ))
-    );
-
-    world.add(
-        Box::new(Sphere::new(
-            Point3::new(5.0, 5.0, 5.0),
-            1.0,
-            material_light,
-        ))
-    );
-
-    Box::new(world)
 }
 
 fn ray_colour(ray: &Ray, background: &Colour, world: &Box<dyn Element>, depth: isize) -> Colour {
