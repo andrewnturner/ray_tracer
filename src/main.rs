@@ -24,15 +24,15 @@ fn main() {
     let image_width = 400;
     let image_height = (image_width as f32 / aspect_ratio) as isize;
 
-    let samples_per_pixel = 40;
-    let max_depth = 30;
+    let samples_per_pixel = 400;
+    let max_depth = 40;
 
-    let world_choice = 0;
+    let world_choice = 3;
     let (world, look_at, look_from, vfov, background) = match world_choice {
         0 => {
             let world = create_basic_spheres();
             let look_at = Point3::new(0.0, 0.0, -1.0);
-            let look_from = Point3::new(-2.0, 2.0, 1.0);
+            let look_from = Point3::new(-2.5, 1.5, 1.0);
             let vfov = 45.0;
             let background = Colour::new(0.7, 0.8, 1.0);
 

@@ -19,8 +19,8 @@ use crate::render::textures::solid_colour::SolidColour;
 use crate::util::perlin::Perlin;
 
 pub fn create_basic_spheres() -> Box<dyn Element> {
-    let material_ground = Rc::new(Lambertian::new_with_colour(Colour::new(0.8, 0.8, 0.0)));
-    let material_centre = Rc::new(
+    let material_ground = Rc::new(Lambertian::new_with_colour(Colour::new(0.6, 0.6, 0.0)));
+    let material_checker = Rc::new(
         Lambertian::new(
             Rc::new(Checker::new(
                 Rc::new(SolidColour::new(Colour::new(0.1, 0.1, 0.1))),
@@ -28,42 +28,42 @@ pub fn create_basic_spheres() -> Box<dyn Element> {
             )),
         ),
     );
-    let material_left = Rc::new(Dielectric::new(1.5));
-    let material_right = Rc::new(Metal::new(Colour::new(0.8, 0.6, 0.2)));
+    let material_glass = Rc::new(Dielectric::new(1.5));
+    let material_metal = Rc::new(Metal::new(Colour::new(0.8, 0.6, 0.2)));
     
     let mut elements: Vec<Rc<dyn Element>> = Vec::new();
 
     elements.push(Rc::new(
         Sphere::new(
-            Point3::new(0.0, -100.5, -1.0),
-            100.0,
+            Point3::new(0.0, -1000.5, -1.0),
+            1000.0,
             material_ground.clone(),
         )
     ));
     elements.push(Rc::new(
         MovingSphere::new(
-            Point3::new(0.0, 0.0, -1.0),
-            Point3::new(0.0, 0.0, -1.0),
+            Point3::new(0.0, 0.0, -1.5),
+            Point3::new(0.0, 0.0, -1.5),
             0.0,
             1.0,
             0.5,
-            material_centre.clone(),
+            material_checker.clone(),
         )
     ));
     elements.push(Rc::new(
         Sphere::new(
             Point3::new(-1.0, 0.0, -1.0),
             0.5,
-            material_left.clone(),
+            material_glass.clone(),
         )
     ));
     elements.push(Rc::new(
         Sphere::new(
             Point3::new(1.0, 0.0, -1.0),
             0.5,
-            material_right.clone(),
+            material_metal.clone(),
         )
-    ));    
+    )); 
 
     let world = BvhNode::from_elements(elements, 0.0, 1.0);
 
